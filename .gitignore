@@ -1,0 +1,23 @@
+# Node
+node_modules/
+dist/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Import-Cache
+scripts/.cache/
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
