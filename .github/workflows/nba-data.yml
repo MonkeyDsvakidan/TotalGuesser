@@ -38,7 +38,14 @@ jobs:
           restore-keys: nba-cache-
 
       - name: Import
-        run: python scripts/nba_import.py ${{ github.event.inputs.args || '--refresh-active' }}
+        run: |
+          set -o pipefail
+          python -u scripts/nba_import.py ${{ github.event.inputs.args || '--refresh-active' }} 2>&1 | tee import.log
+
+      # Letzte Zeilen als Annotation, damit der Fehler direkt in der Übersicht steht
+      - name: Fehler melden
+        if: failure()
+        run: echo "::error title=Import fehlgeschlagen::$(tail -n 8 import.log | tr '\n' ' ' | cut -c1-900)"
 
       - uses: actions/cache/save@v4
         if: always()
