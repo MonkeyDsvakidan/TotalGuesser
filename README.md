@@ -27,7 +27,7 @@ Das Frontend lädt pro Runde nur die Datei des Rundenteams. Ein Spieler ohne Wer
 
 ### 1. NBA-Daten erzeugen
 
-Läuft lokal (stats.nba.com blockiert viele Cloud-Server).
+Läuft nur auf einem normalen PC: stats.nba.com blockiert Cloud-Server, auch GitHub Actions (getestet). Ein automatisches Update über GitHub ist deshalb nicht möglich.
 
 ```bash
 cd scripts
@@ -37,10 +37,10 @@ pip install -r requirements.txt
 python nba_import.py --limit 20       # kurzer Test
 python nba_import.py --active-only    # nur aktive Spieler (~500 Anfragen)
 python nba_import.py                  # alle Spieler (~5000 Anfragen, mehr als eine Stunde)
-python nba_import.py --refresh-active # Update: aktive Spieler neu laden, Rest aus dem Cache
+python nba_import.py --refresh-active # wöchentliches Update: aktive Spieler neu laden, Rest aus dem Cache
 ```
 
-Antworten werden in `scripts/.cache/` gespeichert. Ein abgebrochener Lauf macht beim nächsten Start dort weiter. Danach die Dateien in `web/public/data/` committen.
+Antworten werden in `scripts/.cache/` gespeichert. Ein abgebrochener Lauf macht beim nächsten Start dort weiter. Danach die Dateien in `web/public/data/` committen und pushen – GitHub Pages veröffentlicht sie automatisch.
 
 Festgelegt im Skript:
 - Nur Regular Season.
@@ -78,6 +78,6 @@ Einmalig nötig: im Repo unter **Settings → Pages → Build and deployment →
 - [x] Spiel-Frontend Modus 1 (ein Gerät)
 - [ ] Career Highs (langsames Skript)
 - [x] Automatische Zielzahl (Median pro Runde × 0.8–1.3)
-- [ ] Wöchentliches Update
+- [ ] Wöchentliches Update (von Hand mit `--refresh-active`, GitHub Actions wird von der NBA blockiert)
 - [ ] Fussball-Daten
 - [ ] Online-Multiplayer

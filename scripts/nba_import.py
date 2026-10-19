@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import sys
 import time
 import unicodedata
 from collections import defaultdict
@@ -202,7 +203,16 @@ def main() -> None:
 
     for i, pl in enumerate(selected, start=1):
         print(f"[{i}/{len(selected)}] {pl['full_name']}")
-        career, player_teams = compute_player(fetch_career(pl["id"], refresh=args.refresh_active and pl["is_active"]))
+        try:
+            seasons = fetch_career(pl["id"], refresh=args.refresh_active and pl["is_active"])
+        except RuntimeError:
+            if i == 1:
+                sys.exit(
+                    "stats.nba.com ist nicht erreichbar. Die NBA blockiert viele Cloud-Server "
+                    "(auch GitHub Actions) – das Skript auf einem normalen PC ausführen."
+                )
+            raise
+        career, player_teams = compute_player(seasons)
 
         for nba_team_id, entry in player_teams.items():
             # Ehemalige Franchises (z. B. Baltimore Bullets) kennt static_teams nicht
