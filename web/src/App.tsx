@@ -1,23 +1,16 @@
 import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabase'
-import type { Category } from './lib/types'
+import { loadMeta } from './lib/data'
+import type { SportMeta } from './lib/types'
 
-// Platzhalter: zeigt die Kategorien aus Supabase. Der Spielablauf (PLAN.md, Abschnitt 5) kommt als Nächstes.
+// Platzhalter: zeigt Datenstand, Teams und Kategorien. Der Spielablauf (PLAN.md, Abschnitt 5) kommt als Nächstes.
 export default function App() {
-  const [categories, setCategories] = useState<Category[]>([])
+  const [meta, setMeta] = useState<SportMeta | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!supabase) return
-    supabase
-      .from('categories')
-      .select('*')
-      .eq('enabled', true)
-      .order('key')
-      .then(({ data, error }) => {
-        if (error) setError(error.message)
-        else setCategories(data ?? [])
-      })
+    loadMeta('nba')
+      .then(setMeta)
+      .catch((e: Error) => setError(e.message))
   }, [])
 
   return (
@@ -25,20 +18,28 @@ export default function App() {
       <h1>TotalGuesser</h1>
       <p className="lead">Team, Kategorie, Zielzahl – wer am nächsten dran ist, gewinnt.</p>
 
-      {!supabase && <p className="note">Supabase ist nicht konfiguriert: <code>web/.env.local</code> anlegen (siehe <code>.env.example</code>).</p>}
-      {error && <p className="note">Fehler beim Laden: {error}</p>}
+      {error && (
+        <p className="note">
+          Keine Daten gefunden ({error}). Zuerst <code>scripts/nba_import.py</code> ausführen.
+        </p>
+      )}
 
-      {categories.length > 0 && (
-        <section>
-          <h2>Kategorien</h2>
-          <ul>
-            {categories.map((c) => (
-              <li key={c.key}>
-                {c.label} <span className="scope">{c.scope}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {meta && (
+        <>
+          <p className="note">
+            Daten-Stand: {new Date(meta.updated_at).toLocaleDateString('de-CH')} · {meta.teams.length} Teams
+          </p>
+          <section>
+            <h2>Kategorien</h2>
+            <ul>
+              {meta.categories.map((c) => (
+                <li key={c.key}>
+                  {c.label} <span className="scope">{c.scope}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </>
       )}
     </main>
   )

@@ -1,41 +1,60 @@
-"""NBA-Import: Teams, Spieler, player_teams sowie Team- und Karriere-Totals.
+"""NBA-Import: schreibt Teams, Kategorien und Spielerwerte als statische JSON-Dateien.
 
 Quelle ist nba_api (offizielle NBA-Statistiken). Gezählt wird nur die Regular Season.
 Pro Spieler ist eine Anfrage nötig (PlayerCareerStats); Antworten werden in
 scripts/.cache/ gespeichert, damit ein abgebrochener Lauf weitermachen kann.
 
+Ausgabe (Standard: web/public/data/nba/):
+    meta.json             Datenstand, Kategorien, Teams
+    teams/<team_id>.json  alle Spieler eines Teams mit Karriere- und Teamwerten
+
 Franchise-Umzüge: nba_api vergibt pro Franchise eine feste TEAM_ID
 (z. B. Seattle SuperSonics = OKC Thunder). Umzüge werden deshalb zusammengefasst.
 
 Beispiele:
-    python nba_import.py --active-only
-    python nba_import.py --limit 50
-    python nba_import.py --player-id 2544
+    python nba_import.py --limit 50          # kurzer Test
+    python nba_import.py --active-only       # nur aktive Spieler
+    python nba_import.py                     # alle Spieler
+    python nba_import.py --refresh-active    # wöchentliches Update
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
-import sys
+import shutil
 import time
 import unicodedata
 from collections import defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 
-from dotenv import load_dotenv
 from nba_api.stats.endpoints import playercareerstats
 from nba_api.stats.static import players as static_players
 from nba_api.stats.static import teams as static_teams
-from supabase import Client, create_client
 
 SPORT = "nba"
-CAREER_TEAM = "all"
-CACHE_DIR = Path(__file__).parent / ".cache" / "nba_career"
+SCRIPTS_DIR = Path(__file__).parent
+CACHE_DIR = SCRIPTS_DIR / ".cache" / "nba_career"
+ALIASES_FILE = SCRIPTS_DIR / "aliases" / "nba.json"
+DEFAULT_OUT = SCRIPTS_DIR.parent / "web" / "public" / "data" / SPORT
 REQUEST_PAUSE_S = 0.8
-UPSERT_CHUNK = 500
-FLUSH_EVERY_PLAYERS = 50
+
+# scope: 'career' = ganze Karriere, 'team' = nur beim Rundenteam, 'team_best_season' = beste Saison beim Team
+CATEGORIES = [
+    {"key": "career_total_pts", "label": "Karriere-Punkte total", "scope": "career", "unit": "Punkte"},
+    {"key": "career_total_reb", "label": "Karriere-Rebounds total", "scope": "career", "unit": "Rebounds"},
+    {"key": "career_total_ast", "label": "Karriere-Assists total", "scope": "career", "unit": "Assists"},
+    {"key": "career_games", "label": "Karriere-Spiele", "scope": "career", "unit": "Spiele"},
+    {"key": "team_total_pts", "label": "Punkte für das Team", "scope": "team", "unit": "Punkte"},
+    {"key": "team_total_reb", "label": "Rebounds für das Team", "scope": "team", "unit": "Rebounds"},
+    {"key": "team_total_ast", "label": "Assists für das Team", "scope": "team", "unit": "Assists"},
+    {"key": "team_games", "label": "Spiele für das Team", "scope": "team", "unit": "Spiele"},
+    {"key": "team_seasons", "label": "Saisons beim Team", "scope": "team", "unit": "Saisons"},
+    {"key": "team_best_season_ppg", "label": "Bester Punkteschnitt einer Saison", "scope": "team_best_season", "unit": "Punkte/Spiel"},
+    {"key": "team_best_season_rpg", "label": "Bester Reboundschnitt einer Saison", "scope": "team_best_season", "unit": "Rebounds/Spiel"},
+    {"key": "team_best_season_apg", "label": "Bester Assistschnitt einer Saison", "scope": "team_best_season", "unit": "Assists/Spiel"},
+]
 
 
 def team_key(nba_team_id: int) -> str:
@@ -61,30 +80,18 @@ def num(value) -> float:
     return float(value) if value is not None else 0.0
 
 
-# --- Supabase ---------------------------------------------------------------
-
-
-def supabase_client() -> Client:
-    load_dotenv(Path(__file__).parent / ".env")
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not key:
-        sys.exit("SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY fehlen (siehe scripts/.env.example).")
-    return create_client(url, key)
-
-
-def upsert(db: Client, table: str, rows: list[dict], on_conflict: str) -> None:
-    for i in range(0, len(rows), UPSERT_CHUNK):
-        db.table(table).upsert(rows[i : i + UPSERT_CHUNK], on_conflict=on_conflict).execute()
+def clean(value: float) -> int | float:
+    # 1600.0 -> 1600, damit die JSON-Dateien kleiner bleiben
+    return int(value) if float(value).is_integer() else value
 
 
 # --- nba_api ----------------------------------------------------------------
 
 
-def fetch_career(player_id: int, retries: int = 4) -> list[dict]:
+def fetch_career(player_id: int, refresh: bool = False, retries: int = 4) -> list[dict]:
     """Saison-Totals der Regular Season, aus dem Cache oder von stats.nba.com."""
     cache_file = CACHE_DIR / f"{player_id}.json"
-    if cache_file.exists():
+    if cache_file.exists() and not refresh:
         return json.loads(cache_file.read_text())
 
     for attempt in range(retries):
@@ -108,40 +115,34 @@ def fetch_career(player_id: int, retries: int = 4) -> list[dict]:
 # --- Berechnung -------------------------------------------------------------
 
 
-def compute_player(pid: int, seasons: list[dict]) -> tuple[list[dict], list[dict], dict[int, str]]:
-    """Liefert (player_teams, stat_values, {NBA-Team-ID: Kürzel}) für einen Spieler."""
+def compute_player(seasons: list[dict]) -> tuple[dict, dict[int, dict]]:
+    """Liefert (Karrierewerte, {NBA-Team-ID: Teameintrag}) für einen Spieler."""
     # TOT-Zeilen (Saison mit Trade) sind Summen der Team-Zeilen -> weglassen
     rows = [r for r in seasons if r["TEAM_ID"] and r["TEAM_ABBREVIATION"] != "TOT"]
     if not rows:
-        return [], [], {}
+        return {}, {}
+
+    career = {
+        "career_total_pts": clean(sum(num(r["PTS"]) for r in rows)),
+        "career_total_reb": clean(sum(num(r["REB"]) for r in rows)),
+        "career_total_ast": clean(sum(num(r["AST"]) for r in rows)),
+        "career_games": clean(sum(num(r["GP"]) for r in rows)),
+    }
 
     by_team: dict[int, list[dict]] = defaultdict(list)
     for r in rows:
         by_team[r["TEAM_ID"]].append(r)
 
-    p = player_key(pid)
-    stats: list[dict] = []
-
-    def stat(category: str, team: str, value: float) -> None:
-        stats.append({"player_id": p, "category_key": category, "team_id": team, "value": value})
-
-    stat("career_total_pts", CAREER_TEAM, sum(num(r["PTS"]) for r in rows))
-    stat("career_total_reb", CAREER_TEAM, sum(num(r["REB"]) for r in rows))
-    stat("career_total_ast", CAREER_TEAM, sum(num(r["AST"]) for r in rows))
-    stat("career_games", CAREER_TEAM, sum(num(r["GP"]) for r in rows))
-
-    links: list[dict] = []
+    teams: dict[int, dict] = {}
     for nba_team_id, team_rows in by_team.items():
-        t = team_key(nba_team_id)
         starts = [season_start(r["SEASON_ID"]) for r in team_rows]
-        links.append({"player_id": p, "team_id": t, "first_season": min(starts), "last_season": max(starts)})
-
-        stat("team_total_pts", t, sum(num(r["PTS"]) for r in team_rows))
-        stat("team_total_reb", t, sum(num(r["REB"]) for r in team_rows))
-        stat("team_total_ast", t, sum(num(r["AST"]) for r in team_rows))
-        stat("team_games", t, sum(num(r["GP"]) for r in team_rows))
-        stat("team_seasons", t, len(set(starts)))
-
+        values = {
+            "team_total_pts": clean(sum(num(r["PTS"]) for r in team_rows)),
+            "team_total_reb": clean(sum(num(r["REB"]) for r in team_rows)),
+            "team_total_ast": clean(sum(num(r["AST"]) for r in team_rows)),
+            "team_games": clean(sum(num(r["GP"]) for r in team_rows)),
+            "team_seasons": len(set(starts)),
+        }
         played = [r for r in team_rows if num(r["GP"]) > 0]
         if played:
             for category, column in (
@@ -149,100 +150,101 @@ def compute_player(pid: int, seasons: list[dict]) -> tuple[list[dict], list[dict
                 ("team_best_season_rpg", "REB"),
                 ("team_best_season_apg", "AST"),
             ):
-                best = max(num(r[column]) / num(r["GP"]) for r in played)
-                stat(category, t, round(best, 1))
+                values[category] = clean(round(max(num(r[column]) / num(r["GP"]) for r in played), 1))
 
-    return links, stats, {tid: team_rows[-1]["TEAM_ABBREVIATION"] for tid, team_rows in by_team.items()}
+        teams[nba_team_id] = {
+            "abbr": team_rows[-1]["TEAM_ABBREVIATION"],
+            "first": min(starts),
+            "last": max(starts),
+            "values": values,
+        }
+    return career, teams
 
 
-# --- Ablauf -----------------------------------------------------------------
+# --- Ausgabe ----------------------------------------------------------------
 
 
-def import_teams(db: Client) -> dict[int, dict]:
-    teams = {}
-    for t in static_teams.get_teams():
-        teams[t["id"]] = {
+def write_json(path: Path, data) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+
+
+def load_aliases() -> dict[str, list[str]]:
+    if not ALIASES_FILE.exists():
+        return {}
+    return json.loads(ALIASES_FILE.read_text(encoding="utf-8"))
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--active-only", action="store_true", help="nur aktive Spieler exportieren")
+    parser.add_argument("--refresh-active", action="store_true", help="aktive Spieler neu laden statt aus dem Cache")
+    parser.add_argument("--limit", type=int, help="höchstens N Spieler (zum Testen)")
+    parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help=f"Zielordner (Standard: {DEFAULT_OUT})")
+    args = parser.parse_args()
+
+    selected = static_players.get_active_players() if args.active_only else static_players.get_players()
+    if args.limit:
+        selected = selected[: args.limit]
+    aliases = load_aliases()
+
+    teams = {
+        t["id"]: {
             "id": team_key(t["id"]),
-            "sport_id": SPORT,
             "name": t["full_name"],
             "short_name": t["abbreviation"],
             "logo_url": f"https://cdn.nba.com/logos/nba/{t['id']}/global/L/logo.svg",
             "active": True,
         }
-    upsert(db, "teams", list(teams.values()), "id")
-    print(f"{len(teams)} aktuelle Teams gespeichert")
-    return teams
-
-
-def import_players(db: Client, selected: list[dict]) -> None:
-    rows = [
-        {
-            "id": player_key(pl["id"]),
-            "sport_id": SPORT,
-            "full_name": pl["full_name"],
-            "search_name": search_name(pl["full_name"]),
-            "is_active": pl["is_active"],
-        }
-        for pl in selected
-    ]
-    # aliases bewusst nicht überschreiben: die werden von Hand gepflegt
-    upsert(db, "players", rows, "id")
-    print(f"{len(rows)} Spieler gespeichert")
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--active-only", action="store_true", help="nur aktive Spieler")
-    parser.add_argument("--limit", type=int, help="höchstens N Spieler (zum Testen)")
-    parser.add_argument("--player-id", type=int, action="append", help="nur diese NBA-Spieler-ID(s)")
-    args = parser.parse_args()
-
-    db = supabase_client()
-    known_teams = import_teams(db)
-
-    selected = static_players.get_active_players() if args.active_only else static_players.get_players()
-    if args.player_id:
-        wanted = set(args.player_id)
-        selected = [pl for pl in static_players.get_players() if pl["id"] in wanted]
-    if args.limit:
-        selected = selected[: args.limit]
-    import_players(db, selected)
-
-    pending_links: list[dict] = []
-    pending_stats: list[dict] = []
-
-    def flush() -> None:
-        upsert(db, "player_teams", pending_links, "player_id,team_id")
-        upsert(db, "stat_values", pending_stats, "player_id,category_key,team_id")
-        pending_links.clear()
-        pending_stats.clear()
+        for t in static_teams.get_teams()
+    }
+    rosters: dict[int, list[dict]] = defaultdict(list)
 
     for i, pl in enumerate(selected, start=1):
         print(f"[{i}/{len(selected)}] {pl['full_name']}")
-        links, stats, team_abbrs = compute_player(pl["id"], fetch_career(pl["id"]))
+        career, player_teams = compute_player(fetch_career(pl["id"], refresh=args.refresh_active and pl["is_active"]))
 
-        # Ehemalige Franchises (z. B. Baltimore Bullets) kennt static_teams nicht
-        new_teams = {tid: abbr for tid, abbr in team_abbrs.items() if tid not in known_teams}
-        if new_teams:
-            rows = []
-            for tid, abbr in new_teams.items():
-                known_teams[tid] = {
-                    "id": team_key(tid),
-                    "sport_id": SPORT,
-                    "name": abbr,
-                    "short_name": abbr,
-                    "active": False,
+        for nba_team_id, entry in player_teams.items():
+            # Ehemalige Franchises (z. B. Baltimore Bullets) kennt static_teams nicht
+            teams.setdefault(
+                nba_team_id,
+                {"id": team_key(nba_team_id), "name": entry["abbr"], "short_name": entry["abbr"], "logo_url": None, "active": False},
+            )
+            rosters[nba_team_id].append(
+                {
+                    "id": player_key(pl["id"]),
+                    "name": pl["full_name"],
+                    "search": search_name(pl["full_name"]),
+                    "aliases": aliases.get(player_key(pl["id"]), []),
+                    "active": pl["is_active"],
+                    "first": entry["first"],
+                    "last": entry["last"],
+                    "values": {**career, **entry["values"]},
                 }
-                rows.append(known_teams[tid])
-            upsert(db, "teams", rows, "id")
+            )
 
-        pending_links.extend(links)
-        pending_stats.extend(stats)
-        if i % FLUSH_EVERY_PLAYERS == 0:
-            flush()
+    # Alte Ausgabe ersetzen, damit keine verwaisten Teamdateien liegen bleiben
+    shutil.rmtree(args.out / "teams", ignore_errors=True)
+    for nba_team_id, roster in rosters.items():
+        roster.sort(key=lambda p: p["search"])
+        write_json(args.out / "teams" / f"{teams[nba_team_id]['id']}.json", roster)
 
-    flush()
-    print("Fertig.")
+    meta_teams = [
+        {**team, "player_count": len(rosters[nba_team_id])}
+        for nba_team_id, team in teams.items()
+        if rosters.get(nba_team_id)
+    ]
+    meta_teams.sort(key=lambda t: (not t["active"], t["name"]))
+    write_json(
+        args.out / "meta.json",
+        {
+            "sport": SPORT,
+            "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "categories": CATEGORIES,
+            "teams": meta_teams,
+        },
+    )
+    print(f"Fertig: {len(meta_teams)} Teams, {sum(len(r) for r in rosters.values())} Einträge in {args.out}")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,9 @@
 
 Ein Ratespiel für 2–6 Spieler. Pro Runde gibt das Spiel ein **Team**, eine **Kategorie** und eine **Zielzahl** vor. Jeder nennt reihum einen Spieler, der für dieses Team gespielt hat. Nach 5 Runden werden die Werte zusammengezählt – wer am nächsten am Ziel ist, gewinnt.
 
-**Grundsatz:** Keine KI und keine Live-API während des Spiels. Alle Daten werden vorher gesammelt, in Supabase gespeichert und im Spiel nur abgefragt.
+**Grundsatz:** Keine KI und keine Live-API während des Spiels. Alle Daten werden vorher gesammelt, gespeichert und im Spiel nur abgefragt.
+
+> **Entscheidung (19.10.2026):** Statt Supabase werden die Daten als statische JSON-Dateien in `web/public/data/` gespeichert (siehe README). Das Datenmodell in Abschnitt 2 gilt sinngemäss weiter: Kategorien und Scopes bleiben gleich, die Werte liegen pro Team in einer Datei. Für den Online-Multiplayer (Modus 2) wird später ein Echtzeit-Dienst gewählt.
 
 ---
 
