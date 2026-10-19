@@ -56,7 +56,12 @@ npm run dev
 npm test        # Tests der Spiellogik
 ```
 
-Für das Hosting reicht ein statischer Host (GitHub Pages, Netlify, Vercel): `npm run build` erzeugt `web/dist/`.
+### 3. Hosting (GitHub Pages)
+
+Jeder Push auf `main` testet, baut und veröffentlicht die Seite automatisch (`.github/workflows/pages.yml`):
+https://monkeydsvakidan.github.io/TotalGuesser/
+
+Einmalig nötig: im Repo unter **Settings → Pages → Build and deployment → Source** «GitHub Actions» wählen.
 
 ## Spielablauf (Modus 1)
 
