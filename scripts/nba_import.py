@@ -43,6 +43,8 @@ CACHE_DIR = SCRIPTS_DIR / ".cache"
 ALIASES_FILE = SCRIPTS_DIR / "aliases" / "nba.json"
 DEFAULT_OUT = SCRIPTS_DIR.parent / "web" / "public" / "data" / SPORT
 REQUEST_PAUSE_S = 0.8
+# Untergrenze fürs Niveau: wer weniger Karrierepunkte hat, kommt nicht ins Spiel
+DEFAULT_MIN_CAREER_POINTS = 1000
 
 # scope: 'career' = ganze Karriere, 'team' = nur beim Rundenteam, 'team_best_season' = beste Saison beim Team
 # group: 'single_game' = Wert aus einem einzelnen Spiel, 'multi_game' = Karriere, Saison oder Summe vieler Spiele
@@ -236,6 +238,12 @@ def main() -> None:
     parser.add_argument("--refresh-active", action="store_true", help="aktive Spieler neu laden statt aus dem Cache")
     parser.add_argument("--limit", type=int, help="höchstens N Spieler (zum Testen)")
     parser.add_argument("--skip-highs", action="store_true", help="keine Career Highs laden (halb so viele Anfragen)")
+    parser.add_argument(
+        "--min-points",
+        type=int,
+        default=DEFAULT_MIN_CAREER_POINTS,
+        help=f"nur Spieler mit mindestens so vielen Karrierepunkten (Standard: {DEFAULT_MIN_CAREER_POINTS}, 0 = alle)",
+    )
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help=f"Zielordner (Standard: {DEFAULT_OUT})")
     args = parser.parse_args()
 
@@ -270,8 +278,10 @@ def main() -> None:
                 )
             raise
         career, player_teams = compute_player(seasons)
+        if career.get("career_total_pts", 0) < args.min_points:
+            continue
 
-        if player_teams and load_highs:
+        if load_highs:
             try:
                 career.update(compute_career_highs(fetch_career_highs(pl["id"], refresh=args.refresh_active and pl["is_active"])))
                 highs_failures = 0
@@ -319,6 +329,7 @@ def main() -> None:
         {
             "sport": SPORT,
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "min_career_points": args.min_points,
             # Kategorien ohne einen einzigen Wert (z. B. Career Highs mit --skip-highs) weglassen
             "categories": [
                 c for c in CATEGORIES if any(c["key"] in p["values"] for roster in rosters.values() for p in roster)

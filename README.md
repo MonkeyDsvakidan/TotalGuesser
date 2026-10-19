@@ -38,6 +38,7 @@ python nba_import.py --limit 20       # kurzer Test
 python nba_import.py --active-only    # nur aktive Spieler (~1000 Anfragen, etwa 20–30 Minuten)
 python nba_import.py                  # alle Spieler (~10'000 Anfragen, mehrere Stunden)
 python nba_import.py --skip-highs     # ohne Career Highs (halb so viele Anfragen)
+python nba_import.py --min-points 500 # Untergrenze ändern (Standard 1000 Karrierepunkte, 0 = alle)
 python nba_import.py --refresh-active # wöchentliches Update: aktive Spieler neu laden, Rest aus dem Cache
 ```
 
@@ -45,6 +46,7 @@ Antworten werden in `scripts/.cache/` gespeichert. Ein abgebrochener Lauf macht 
 
 Festgelegt im Skript:
 - Nur Regular Season.
+- Nur Spieler mit mindestens 1'000 Karrierepunkten kommen ins Spiel (`--min-points`), damit keine unbekannten Ergänzungsspieler im Kader sind.
 - Career Highs (bestes Einzelspiel) kommen aus `PlayerProfileV2`. Fehlen sie für einen Spieler (z. B. sehr alte Saisons), zählt der Wert 0.
 - Saisons mit Trade (`TOT`-Zeilen) werden nicht doppelt gezählt.
 - Franchise-Umzüge zählen als ein Team (Seattle SuperSonics = OKC Thunder), weil `nba_api` pro Franchise eine feste ID verwendet.

@@ -23,6 +23,7 @@ export interface Team {
 export interface SportMeta {
   sport: string
   updated_at: string
+  min_career_points?: number
   categories: Category[]
   teams: Team[]
 }

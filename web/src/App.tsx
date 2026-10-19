@@ -164,6 +164,7 @@ export default function App() {
           teams={teams}
           categories={categories}
           rosters={rosters}
+          minCareerPoints={meta.min_career_points}
           onPick={pick}
           onUndo={undo}
           onReveal={() => setGame({ ...game, phase: 'reveal' })}

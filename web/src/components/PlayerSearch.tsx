@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { searchRoster } from '../game/logic'
+import { formatValue, searchRoster } from '../game/logic'
 import type { RosterPlayer } from '../lib/types'
 
 interface Props {
   roster: RosterPlayer[]
   taken: Set<string>
   onPick: (player: RosterPlayer) => void
+  minCareerPoints?: number
 }
 
-export default function PlayerSearch({ roster, taken, onPick }: Props) {
+export default function PlayerSearch({ roster, taken, onPick, minCareerPoints }: Props) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const results = searchRoster(roster, query)
@@ -44,7 +45,12 @@ export default function PlayerSearch({ roster, taken, onPick }: Props) {
       />
       {query && (
         <ul className="results" role="listbox">
-          {results.length === 0 && <li className="muted empty">Kein Spieler dieses Teams gefunden</li>}
+          {results.length === 0 && (
+            <li className="muted empty">
+              Kein Spieler dieses Teams gefunden
+              {minCareerPoints ? ` (nur Spieler ab ${formatValue(minCareerPoints)} Karrierepunkten)` : ''}
+            </li>
+          )}
           {results.map((p) => {
             const used = taken.has(p.id)
             return (
