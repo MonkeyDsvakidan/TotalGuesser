@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Category } from '../lib/types'
+import type { Category, CategoryGroup, Scope } from '../lib/types'
 import type { Settings } from '../game/types'
 import type { PlayerRecord } from '../game/storage'
 
@@ -9,22 +9,39 @@ const MAX_PLAYERS = 6
 const DEFAULT_SETTINGS: Settings = {
   players: ['', ''],
   rounds: 5,
+  categoryGroup: 'multi_game',
   categoryMode: 'fixed',
   categoryKey: null,
   rule: 'closest',
 }
 
+const GROUPS: { id: CategoryGroup; title: string; description: string }[] = [
+  { id: 'single_game', title: 'Einzelnes Spiel', description: 'Career Highs – das beste Spiel eines Spielers' },
+  { id: 'multi_game', title: 'Karriere & mehrere Spiele', description: 'Totals, Spiele, Saisons und Saisonschnitte' },
+]
+
+const SCOPE_TITLES: Record<Scope, string> = {
+  career: 'Ganze Karriere (alle Teams)',
+  team: 'Nur beim Rundenteam',
+  team_best_season: 'Beste Saison beim Rundenteam',
+}
+
 interface Props {
   categories: Category[]
-  initial: Settings | null
+  initial: Partial<Settings> | null
   stats: Record<string, PlayerRecord>
   starting: boolean
   onStart: (settings: Settings) => void
 }
 
 export default function Setup({ categories, initial, stats, starting, onStart }: Props) {
-  const [settings, setSettings] = useState<Settings>(initial ?? DEFAULT_SETTINGS)
+  const [settings, setSettings] = useState<Settings>({ ...DEFAULT_SETTINGS, ...initial })
   const update = (patch: Partial<Settings>) => setSettings((s) => ({ ...s, ...patch }))
+
+  const groupCategories = categories.filter((c) => c.group === settings.categoryGroup)
+  // Gespeicherte Kategorie aus einer anderen Gruppe nicht übernehmen
+  const selectedKey = groupCategories.some((c) => c.key === settings.categoryKey) ? settings.categoryKey : null
+  const scopes = [...new Set(groupCategories.map((c) => c.scope))]
 
   const names = settings.players.map((p) => p.trim())
   const duplicate = names.some((n, i) => n && names.indexOf(n) !== i)
@@ -40,7 +57,7 @@ export default function Setup({ categories, initial, stats, starting, onStart }:
       className="setup"
       onSubmit={(e) => {
         e.preventDefault()
-        if (valid) onStart({ ...settings, players: names })
+        if (valid) onStart({ ...settings, categoryKey: selectedKey, players: names })
       }}
     >
       <fieldset>
@@ -88,6 +105,25 @@ export default function Setup({ categories, initial, stats, starting, onStart }:
 
       <fieldset>
         <legend>Kategorie</legend>
+        <div className="groups" role="radiogroup" aria-label="Art der Kategorie">
+          {GROUPS.map((g) => {
+            const available = categories.some((c) => c.group === g.id)
+            return (
+              <label key={g.id} className={`group-card${settings.categoryGroup === g.id ? ' on' : ''}${available ? '' : ' disabled'}`}>
+                <input
+                  type="radio"
+                  name="group"
+                  checked={settings.categoryGroup === g.id}
+                  disabled={!available}
+                  onChange={() => update({ categoryGroup: g.id, categoryKey: null })}
+                />
+                <span className="group-title">{g.title}</span>
+                <span className="muted small">{available ? g.description : 'Noch keine Daten – kommt mit dem nächsten Import'}</span>
+              </label>
+            )
+          })}
+        </div>
+
         <div className="segmented">
           <label className={settings.categoryMode === 'fixed' ? 'on' : ''}>
             <input type="radio" name="mode" checked={settings.categoryMode === 'fixed'} onChange={() => update({ categoryMode: 'fixed' })} />
@@ -98,19 +134,34 @@ export default function Setup({ categories, initial, stats, starting, onStart }:
             Jede Runde neu
           </label>
         </div>
+
         {settings.categoryMode === 'fixed' && (
-          <select
-            value={settings.categoryKey ?? ''}
-            onChange={(e) => update({ categoryKey: e.target.value || null })}
-            aria-label="Kategorie"
-          >
-            <option value="">Zufällig</option>
-            {categories.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.label}
-              </option>
+          <div className="category-list" role="radiogroup" aria-label="Kategorie">
+            <div className="chips">
+              <label className={selectedKey === null ? 'on' : ''}>
+                <input type="radio" name="category" checked={selectedKey === null} onChange={() => update({ categoryKey: null })} />
+                Zufällig
+              </label>
+            </div>
+            {scopes.map((scope) => (
+              <div key={scope}>
+                {scopes.length > 1 && <div className="scope-title muted small">{SCOPE_TITLES[scope]}</div>}
+                <div className="chips">
+                  {groupCategories
+                    .filter((c) => c.scope === scope)
+                    .map((c) => (
+                      <label key={c.key} className={selectedKey === c.key ? 'on' : ''}>
+                        <input type="radio" name="category" checked={selectedKey === c.key} onChange={() => update({ categoryKey: c.key })} />
+                        {c.label}
+                      </label>
+                    ))}
+                </div>
+              </div>
             ))}
-          </select>
+          </div>
+        )}
+        {settings.categoryMode === 'mixed' && (
+          <p className="muted small">Jede Runde eine zufällige Kategorie aus «{GROUPS.find((g) => g.id === settings.categoryGroup)?.title}».</p>
         )}
       </fieldset>
 

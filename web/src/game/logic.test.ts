@@ -3,7 +3,7 @@ import type { RosterPlayer } from '../lib/types'
 import {
   computeTarget,
   currentTurn,
-  median,
+  percentile,
   normalize,
   perfectLastPick,
   pickTeams,
@@ -23,7 +23,7 @@ function game(picks: Pick[][], overrides: Partial<Game> = {}): Game {
   return {
     id: 'g1',
     sport: 'nba',
-    settings: { players: ['Anna', 'Ben'], rounds: picks.length, categoryMode: 'fixed', categoryKey: 'pts', rule: 'closest' },
+    settings: { players: ['Anna', 'Ben'], rounds: picks.length, categoryGroup: 'multi_game', categoryMode: 'fixed', categoryKey: 'pts', rule: 'closest' },
     rounds: picks.map((_, i) => ({ teamId: `t${i}`, categoryKey: 'pts' })),
     target: 50,
     picks,
@@ -72,10 +72,11 @@ describe('searchRoster', () => {
 })
 
 describe('Zielzahl', () => {
-  it('median', () => {
-    expect(median([3, 1, 2])).toBe(2)
-    expect(median([4, 1, 2, 3])).toBe(2.5)
-    expect(median([])).toBe(0)
+  it('percentile', () => {
+    expect(percentile([3, 1, 2], 0.5)).toBe(2)
+    expect(percentile([4, 1, 2, 3], 0.5)).toBe(2.5)
+    expect(percentile([1, 2, 3, 4, 5], 0.75)).toBe(4)
+    expect(percentile([], 0.75)).toBe(0)
   })
 
   it('roundNicely rundet auf zwei signifikante Stellen', () => {
@@ -84,17 +85,20 @@ describe('Zielzahl', () => {
     expect(roundNicely(7.34)).toBeCloseTo(7.3)
   })
 
-  it('summiert die Mediane der Runden, fehlende Werte zählen 0', () => {
+  it('nimmt das obere Viertel der Stammspieler, fehlende Werte zählen 0', () => {
+    const regular = (id: string, pts?: number) => player(id, id, { team_games: 100, ...(pts === undefined ? {} : { pts }) })
     const rosters = {
-      t0: [player('a', 'A', { pts: 10 }), player('b', 'B', { pts: 12 }), player('c', 'C')],
-      t1: [player('d', 'D', { pts: 20 })],
+      // 5 Stammspieler (einer ohne Wert = 0) und ein Kurzzeit-Spieler, der nicht zählt
+      t0: [regular('a', 10), regular('b', 20), regular('c', 30), regular('d', 40), regular('e'), player('f', 'F', { pts: 999, team_games: 3 })],
+      // zu wenige Stammspieler: alle zählen
+      t1: [player('g', 'G', { pts: 20 }), player('h', 'H', { pts: 40 })],
     }
     const rounds = [
       { teamId: 't0', categoryKey: 'pts' },
       { teamId: 't1', categoryKey: 'pts' },
     ]
-    // Mediane 10 + 20 = 30, Faktor 0.8 + 0.4 * 0.5 = 1.0
-    expect(computeTarget(rounds, rosters, () => 0.4)).toBe(30)
+    // t0: [0, 10, 20, 30, 40] -> 30; t1: [20, 40] -> 35; Faktor 0.8 + 0.4 * 0.5 = 1.0
+    expect(computeTarget(rounds, rosters, () => 0.4)).toBe(65)
   })
 })
 

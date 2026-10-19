@@ -215,8 +215,79 @@ legend {
   height: 1px;
 }
 
-.segmented label:has(input:focus-visible) {
+.segmented label:has(input:focus-visible),
+.chips label:has(input:focus-visible),
+.group-card:has(input:focus-visible) {
   outline: 2px solid var(--accent);
+}
+
+/* Kategorie-Gruppen: Einzelspiel vs. Karriere & mehrere Spiele */
+.groups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.group-card {
+  display: grid;
+  gap: 0.2rem;
+  align-content: start;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.group-card.on {
+  border: 2px solid var(--accent);
+  padding: calc(0.7rem - 1px) calc(0.75rem - 1px);
+  background: var(--accent-soft);
+}
+
+.group-card.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.group-title {
+  font-weight: 700;
+}
+
+.category-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.scope-title {
+  margin-bottom: 0.3rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chips label {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.chips label.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.group-card input,
+.chips input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
 }
 
 .stats ul,

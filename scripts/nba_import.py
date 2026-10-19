@@ -4,6 +4,9 @@ Quelle ist nba_api (offizielle NBA-Statistiken). Gezählt wird nur die Regular S
 Pro Spieler ist eine Anfrage nötig (PlayerCareerStats); Antworten werden in
 scripts/.cache/ gespeichert, damit ein abgebrochener Lauf weitermachen kann.
 
+Pro Spieler sind zwei Anfragen nötig: PlayerCareerStats (Saison-Totals) und
+PlayerProfileV2 (Career Highs, also beste Einzelspiele).
+
 Ausgabe (Standard: web/public/data/nba/):
     meta.json             Datenstand, Kategorien, Teams
     teams/<team_id>.json  alle Spieler eines Teams mit Karriere- und Teamwerten
@@ -30,32 +33,49 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from nba_api.stats.endpoints import playercareerstats
+from nba_api.stats.endpoints import playercareerstats, playerprofilev2
 from nba_api.stats.static import players as static_players
 from nba_api.stats.static import teams as static_teams
 
 SPORT = "nba"
 SCRIPTS_DIR = Path(__file__).parent
-CACHE_DIR = SCRIPTS_DIR / ".cache" / "nba_career"
+CACHE_DIR = SCRIPTS_DIR / ".cache"
 ALIASES_FILE = SCRIPTS_DIR / "aliases" / "nba.json"
 DEFAULT_OUT = SCRIPTS_DIR.parent / "web" / "public" / "data" / SPORT
 REQUEST_PAUSE_S = 0.8
 
 # scope: 'career' = ganze Karriere, 'team' = nur beim Rundenteam, 'team_best_season' = beste Saison beim Team
+# group: 'single_game' = Wert aus einem einzelnen Spiel, 'multi_game' = Karriere, Saison oder Summe vieler Spiele
 CATEGORIES = [
-    {"key": "career_total_pts", "label": "Karriere-Punkte total", "scope": "career", "unit": "Punkte"},
-    {"key": "career_total_reb", "label": "Karriere-Rebounds total", "scope": "career", "unit": "Rebounds"},
-    {"key": "career_total_ast", "label": "Karriere-Assists total", "scope": "career", "unit": "Assists"},
-    {"key": "career_games", "label": "Karriere-Spiele", "scope": "career", "unit": "Spiele"},
-    {"key": "team_total_pts", "label": "Punkte für das Team", "scope": "team", "unit": "Punkte"},
-    {"key": "team_total_reb", "label": "Rebounds für das Team", "scope": "team", "unit": "Rebounds"},
-    {"key": "team_total_ast", "label": "Assists für das Team", "scope": "team", "unit": "Assists"},
-    {"key": "team_games", "label": "Spiele für das Team", "scope": "team", "unit": "Spiele"},
-    {"key": "team_seasons", "label": "Saisons beim Team", "scope": "team", "unit": "Saisons"},
-    {"key": "team_best_season_ppg", "label": "Bester Punkteschnitt einer Saison", "scope": "team_best_season", "unit": "Punkte/Spiel"},
-    {"key": "team_best_season_rpg", "label": "Bester Reboundschnitt einer Saison", "scope": "team_best_season", "unit": "Rebounds/Spiel"},
-    {"key": "team_best_season_apg", "label": "Bester Assistschnitt einer Saison", "scope": "team_best_season", "unit": "Assists/Spiel"},
+    {"key": "career_high_pts", "label": "Career High Punkte", "scope": "career", "group": "single_game", "unit": "Punkte"},
+    {"key": "career_high_reb", "label": "Career High Rebounds", "scope": "career", "group": "single_game", "unit": "Rebounds"},
+    {"key": "career_high_ast", "label": "Career High Assists", "scope": "career", "group": "single_game", "unit": "Assists"},
+    {"key": "career_high_fg3m", "label": "Career High Dreier", "scope": "career", "group": "single_game", "unit": "Dreier"},
+    {"key": "career_high_stl", "label": "Career High Steals", "scope": "career", "group": "single_game", "unit": "Steals"},
+    {"key": "career_high_blk", "label": "Career High Blocks", "scope": "career", "group": "single_game", "unit": "Blocks"},
+    {"key": "career_total_pts", "label": "Karriere-Punkte total", "scope": "career", "group": "multi_game", "unit": "Punkte"},
+    {"key": "career_total_reb", "label": "Karriere-Rebounds total", "scope": "career", "group": "multi_game", "unit": "Rebounds"},
+    {"key": "career_total_ast", "label": "Karriere-Assists total", "scope": "career", "group": "multi_game", "unit": "Assists"},
+    {"key": "career_games", "label": "Karriere-Spiele", "scope": "career", "group": "multi_game", "unit": "Spiele"},
+    {"key": "team_total_pts", "label": "Punkte für das Team", "scope": "team", "group": "multi_game", "unit": "Punkte"},
+    {"key": "team_total_reb", "label": "Rebounds für das Team", "scope": "team", "group": "multi_game", "unit": "Rebounds"},
+    {"key": "team_total_ast", "label": "Assists für das Team", "scope": "team", "group": "multi_game", "unit": "Assists"},
+    {"key": "team_games", "label": "Spiele für das Team", "scope": "team", "group": "multi_game", "unit": "Spiele"},
+    {"key": "team_seasons", "label": "Saisons beim Team", "scope": "team", "group": "multi_game", "unit": "Saisons"},
+    {"key": "team_best_season_ppg", "label": "Bester Punkteschnitt einer Saison", "scope": "team_best_season", "group": "multi_game", "unit": "Punkte/Spiel"},
+    {"key": "team_best_season_rpg", "label": "Bester Reboundschnitt einer Saison", "scope": "team_best_season", "group": "multi_game", "unit": "Rebounds/Spiel"},
+    {"key": "team_best_season_apg", "label": "Bester Assistschnitt einer Saison", "scope": "team_best_season", "group": "multi_game", "unit": "Assists/Spiel"},
 ]
+
+# STAT-Namen in PlayerProfileV2 -> Kategorie
+CAREER_HIGH_STATS = {
+    "PTS": "career_high_pts",
+    "REB": "career_high_reb",
+    "AST": "career_high_ast",
+    "FG3M": "career_high_fg3m",
+    "STL": "career_high_stl",
+    "BLK": "career_high_blk",
+}
 
 
 def team_key(nba_team_id: int) -> str:
@@ -89,31 +109,65 @@ def clean(value: float) -> int | float:
 # --- nba_api ----------------------------------------------------------------
 
 
-def fetch_career(player_id: int, refresh: bool = False, retries: int = 4) -> list[dict]:
-    """Saison-Totals der Regular Season, aus dem Cache oder von stats.nba.com."""
-    cache_file = CACHE_DIR / f"{player_id}.json"
+def fetch_cached(kind: str, player_id: int, load, refresh: bool, retries: int) -> list[dict]:
+    """Antwort aus scripts/.cache/<kind>/ oder von stats.nba.com (mit Wiederholungen)."""
+    cache_file = CACHE_DIR / kind / f"{player_id}.json"
     if cache_file.exists() and not refresh:
         return json.loads(cache_file.read_text())
 
     for attempt in range(retries):
         try:
-            data = playercareerstats.PlayerCareerStats(player_id=player_id, timeout=30)
-            rows = data.get_normalized_dict()["SeasonTotalsRegularSeason"]
+            rows = load()
             break
         except Exception as exc:  # nba_api wirft je nach Fehler unterschiedliche Typen
             wait = 2 ** (attempt + 1)
-            print(f"  Fehler bei Spieler {player_id}: {exc} – neuer Versuch in {wait}s")
+            print(f"  Fehler bei Spieler {player_id} ({kind}): {exc} – neuer Versuch in {wait}s")
             time.sleep(wait)
     else:
-        raise RuntimeError(f"Spieler {player_id} konnte nicht geladen werden")
+        raise RuntimeError(f"Spieler {player_id} konnte nicht geladen werden ({kind})")
 
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
     cache_file.write_text(json.dumps(rows))
     time.sleep(REQUEST_PAUSE_S)
     return rows
 
 
+def fetch_career(player_id: int, refresh: bool = False) -> list[dict]:
+    """Saison-Totals der Regular Season."""
+    return fetch_cached(
+        "nba_career",
+        player_id,
+        lambda: playercareerstats.PlayerCareerStats(player_id=player_id, timeout=30)
+        .get_normalized_dict()["SeasonTotalsRegularSeason"],
+        refresh,
+        retries=4,
+    )
+
+
+def fetch_career_highs(player_id: int, refresh: bool = False) -> list[dict]:
+    """Beste Einzelspiele der Karriere (eine Zeile pro Statistik, bei Gleichstand mehrere)."""
+    return fetch_cached(
+        "nba_highs",
+        player_id,
+        lambda: playerprofilev2.PlayerProfileV2(player_id=player_id, timeout=30)
+        .get_normalized_dict()
+        .get("CareerHighs", []),
+        refresh,
+        retries=2,
+    )
+
+
 # --- Berechnung -------------------------------------------------------------
+
+
+def compute_career_highs(rows: list[dict]) -> dict:
+    """Career Highs als Kategoriewerte; fehlt eine Statistik (z. B. alte Saisons), bleibt sie weg."""
+    highs: dict[str, float] = {}
+    for r in rows:
+        category = CAREER_HIGH_STATS.get(r.get("STAT"))
+        if category and r.get("STAT_VALUE") is not None:
+            highs[category] = max(highs.get(category, 0), num(r["STAT_VALUE"]))
+    return {k: clean(v) for k, v in highs.items()}
 
 
 def compute_player(seasons: list[dict]) -> tuple[dict, dict[int, dict]]:
@@ -181,6 +235,7 @@ def main() -> None:
     parser.add_argument("--active-only", action="store_true", help="nur aktive Spieler exportieren")
     parser.add_argument("--refresh-active", action="store_true", help="aktive Spieler neu laden statt aus dem Cache")
     parser.add_argument("--limit", type=int, help="höchstens N Spieler (zum Testen)")
+    parser.add_argument("--skip-highs", action="store_true", help="keine Career Highs laden (halb so viele Anfragen)")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help=f"Zielordner (Standard: {DEFAULT_OUT})")
     args = parser.parse_args()
 
@@ -200,6 +255,8 @@ def main() -> None:
         for t in static_teams.get_teams()
     }
     rosters: dict[int, list[dict]] = defaultdict(list)
+    load_highs = not args.skip_highs
+    highs_failures = 0
 
     for i, pl in enumerate(selected, start=1):
         print(f"[{i}/{len(selected)}] {pl['full_name']}")
@@ -213,6 +270,18 @@ def main() -> None:
                 )
             raise
         career, player_teams = compute_player(seasons)
+
+        if player_teams and load_highs:
+            try:
+                career.update(compute_career_highs(fetch_career_highs(pl["id"], refresh=args.refresh_active and pl["is_active"])))
+                highs_failures = 0
+            except RuntimeError as exc:
+                # Career Highs sind ein Zusatz: ein einzelner Fehler bricht den Lauf nicht ab
+                print(f"  {exc}")
+                highs_failures += 1
+                if highs_failures >= 5:
+                    print("  Career Highs mehrmals hintereinander fehlgeschlagen – für diesen Lauf abgeschaltet.")
+                    load_highs = False
 
         for nba_team_id, entry in player_teams.items():
             # Ehemalige Franchises (z. B. Baltimore Bullets) kennt static_teams nicht
@@ -250,7 +319,10 @@ def main() -> None:
         {
             "sport": SPORT,
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "categories": CATEGORIES,
+            # Kategorien ohne einen einzigen Wert (z. B. Career Highs mit --skip-highs) weglassen
+            "categories": [
+                c for c in CATEGORIES if any(c["key"] in p["values"] for roster in rosters.values() for p in roster)
+            ],
             "teams": meta_teams,
         },
     )

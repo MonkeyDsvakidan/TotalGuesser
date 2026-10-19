@@ -8,7 +8,9 @@ interface Props {
 function scopeHint(category: Category, team: Team): string {
   switch (category.scope) {
     case 'career':
-      return 'Karrierewert – zählt über alle Teams'
+      return category.group === 'single_game'
+        ? 'Bestes Einzelspiel der Karriere – zählt über alle Teams'
+        : 'Karrierewert – zählt über alle Teams'
     case 'team':
       return `Zählt nur die Zeit bei ${team.short_name ?? team.name}`
     case 'team_best_season':

@@ -1,9 +1,12 @@
+import type { CategoryGroup } from '../lib/types'
+
 export type Rule = 'closest' | 'bust'
 
 export interface Settings {
   players: string[]
   rounds: number
-  // 'fixed' = eine Kategorie für alle Runden, 'mixed' = pro Runde zufällig
+  categoryGroup: CategoryGroup
+  // 'fixed' = eine Kategorie für alle Runden, 'mixed' = pro Runde zufällig aus der Gruppe
   categoryMode: 'fixed' | 'mixed'
   categoryKey: string | null // nur bei 'fixed'; null = zufällig
   rule: Rule

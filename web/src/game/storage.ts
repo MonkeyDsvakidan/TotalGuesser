@@ -27,7 +27,7 @@ function write(key: string, value: unknown): void {
 export const loadGame = () => read<Game>(GAME_KEY)
 export const saveGame = (game: Game | null) => write(GAME_KEY, game)
 
-export const loadLastSettings = () => read<Settings>(SETTINGS_KEY)
+export const loadLastSettings = () => read<Partial<Settings>>(SETTINGS_KEY)
 export const saveLastSettings = (settings: Settings) => write(SETTINGS_KEY, settings)
 
 export interface PlayerRecord {

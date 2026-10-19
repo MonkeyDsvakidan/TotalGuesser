@@ -8,8 +8,13 @@ async function getJson<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export function loadMeta(sport: string): Promise<SportMeta> {
-  return getJson(`${sport}/meta.json`)
+export async function loadMeta(sport: string): Promise<SportMeta> {
+  const meta = await getJson<SportMeta>(`${sport}/meta.json`)
+  // Ältere Daten haben noch kein group-Feld
+  for (const c of meta.categories) {
+    c.group ??= c.key.startsWith('career_high_') ? 'single_game' : 'multi_game'
+  }
+  return meta
 }
 
 export function loadRoster(sport: string, teamId: string): Promise<RosterPlayer[]> {

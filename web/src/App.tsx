@@ -52,10 +52,12 @@ export default function App() {
     try {
       const activeTeams = meta.teams.filter((t) => t.active).map((t) => t.id)
       const teamIds = pickTeams(activeTeams.length ? activeTeams : meta.teams.map((t) => t.id), settings.rounds)
-      const fixedCategory = settings.categoryKey ?? pickRandom(meta.categories).key
+      const inGroup = meta.categories.filter((c) => c.group === settings.categoryGroup)
+      const pool = inGroup.length ? inGroup : meta.categories
+      const fixedCategory = pool.find((c) => c.key === settings.categoryKey)?.key ?? pickRandom(pool).key
       const rounds = teamIds.map((teamId) => ({
         teamId,
-        categoryKey: settings.categoryMode === 'fixed' ? fixedCategory : pickRandom(meta.categories).key,
+        categoryKey: settings.categoryMode === 'fixed' ? fixedCategory : pickRandom(pool).key,
       }))
       const loaded = await loadRosters(teamIds)
       setRosters((r) => ({ ...r, ...loaded }))

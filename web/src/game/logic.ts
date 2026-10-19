@@ -40,11 +40,14 @@ export function searchRoster(roster: RosterPlayer[], input: string, limit = 8): 
     .map((m) => m.player)
 }
 
-export function median(values: number[]): number {
+// Linear interpoliertes Quantil: q = 0.5 ist der Median, q = 0.75 das obere Viertel
+export function percentile(values: number[], q: number): number {
   if (values.length === 0) return 0
   const sorted = [...values].sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+  const index = (sorted.length - 1) * q
+  const lower = Math.floor(index)
+  const upper = Math.min(lower + 1, sorted.length - 1)
+  return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower)
 }
 
 // Auf zwei signifikante Stellen runden: 54 -> 54, 1234 -> 1200, 7.3 -> 7.3
@@ -54,16 +57,28 @@ export function roundNicely(value: number): number {
   return Math.round(value / step) * step
 }
 
-// Ziel = Summe der Mediane pro Runde × Zufallsfaktor 0.8–1.3 (PLAN.md, Abschnitt 3)
+// Grundlage der Zielzahl sind die Stammspieler eines Teams, nicht Kurzzeit-Spieler mit wenigen Einsätzen
+export const REGULAR_MIN_TEAM_GAMES = 50
+const MIN_REGULARS = 5
+// Bekannte Spieler liegen eher im oberen Bereich, daher das obere Viertel statt des Medians
+const TARGET_PERCENTILE = 0.75
+
+export function roundBase(roster: RosterPlayer[], categoryKey: string): number {
+  const regulars = roster.filter((p) => playerValue(p, 'team_games') >= REGULAR_MIN_TEAM_GAMES)
+  const pool = regulars.length >= MIN_REGULARS ? regulars : roster
+  return percentile(
+    pool.map((p) => playerValue(p, categoryKey)),
+    TARGET_PERCENTILE,
+  )
+}
+
+// Ziel = Summe der Rundenwerte (oberes Viertel der Stammspieler) × Zufallsfaktor 0.8–1.3
 export function computeTarget(
   rounds: RoundSpec[],
   rosters: Record<string, RosterPlayer[]>,
   random: () => number = Math.random,
 ): number {
-  const base = rounds.reduce((sum, round) => {
-    const values = (rosters[round.teamId] ?? []).map((p) => playerValue(p, round.categoryKey))
-    return sum + median(values)
-  }, 0)
+  const base = rounds.reduce((sum, round) => sum + roundBase(rosters[round.teamId] ?? [], round.categoryKey), 0)
   const factor = 0.8 + random() * 0.5
   return Math.max(1, roundNicely(base * factor))
 }

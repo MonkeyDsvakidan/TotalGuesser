@@ -1,9 +1,13 @@
 export type Scope = 'career' | 'team' | 'team_best_season'
 
+// 'single_game' = Wert aus einem einzelnen Spiel (Career Highs), 'multi_game' = Karriere, Saison oder Summe
+export type CategoryGroup = 'single_game' | 'multi_game'
+
 export interface Category {
   key: string
   label: string
   scope: Scope
+  group: CategoryGroup
   unit: string | null
 }
 
