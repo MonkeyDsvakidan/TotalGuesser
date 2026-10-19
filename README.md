@@ -53,17 +53,26 @@ Festgelegt im Skript:
 cd web
 npm install
 npm run dev
+npm test        # Tests der Spiellogik
 ```
 
 Für das Hosting reicht ein statischer Host (GitHub Pages, Netlify, Vercel): `npm run build` erzeugt `web/dist/`.
+
+## Spielablauf (Modus 1)
+
+1. **Setup:** 2–6 Spieler, 3/5/7/10 Runden, Kategorie fest oder pro Runde neu, Regel «Nur Nähe zählt» oder «Drüber = verloren».
+2. **Runden:** Pro Runde ein zufälliges aktives Team; Teams wiederholen sich erst, wenn alle dran waren. Die Reihenfolge rotiert jede Runde.
+3. **Eingabe:** Suche nach Wortanfängen und Spitznamen, nur Spieler des Rundenteams. Bereits genannte Spieler sind ausgegraut. Passen zählt 0, «Rückgängig» nimmt den letzten Pick zurück.
+4. **Auflösung:** Werte einzeln oder alle aufdecken, danach Rangliste, Abstand zum Ziel und der perfekte letzte Pick.
+5. **Bilanz:** Siege pro Spielername werden im Browser gespeichert. Ein laufendes Spiel übersteht auch ein Neuladen der Seite.
 
 ## Stand
 
 - [x] Datenformat (JSON statt Datenbank)
 - [x] NBA-Import: Teams, Spieler, Team- und Karriere-Totals, beste Saison
-- [ ] Spiel-Frontend Modus 1 (ein Gerät)
+- [x] Spiel-Frontend Modus 1 (ein Gerät)
 - [ ] Career Highs (langsames Skript)
-- [ ] Automatische Zielzahl
+- [x] Automatische Zielzahl (Median pro Runde × 0.8–1.3)
 - [ ] Wöchentliches Update
 - [ ] Fussball-Daten
 - [ ] Online-Multiplayer
