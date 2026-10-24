@@ -3,39 +3,50 @@ import Play from './components/Play'
 import Reveal from './components/Reveal'
 import Setup from './components/Setup'
 import { computeTarget, currentTurn, formatValue, pickRandom, pickTeams, revealOrder } from './game/logic'
-import { loadGame, loadLastSettings, loadStats, recordResult, saveGame, saveLastSettings } from './game/storage'
+import { loadGame, loadLastSettings, loadSport, loadStats, recordResult, saveGame, saveLastSettings, saveSport } from './game/storage'
 import type { Game, Settings } from './game/types'
-import { loadMeta, loadRoster, playerValue } from './lib/data'
+import { loadMeta, loadRoster, playerValue, rosterNote } from './lib/data'
+import { DEFAULT_SPORT, SPORTS, sportById } from './lib/sports'
 import type { RosterPlayer, SportMeta } from './lib/types'
 
-const SPORT = 'nba'
-
-async function loadRosters(teamIds: string[]): Promise<Record<string, RosterPlayer[]>> {
+async function loadRosters(sport: string, teamIds: string[]): Promise<Record<string, RosterPlayer[]>> {
   const unique = [...new Set(teamIds)]
-  const lists = await Promise.all(unique.map((id) => loadRoster(SPORT, id)))
+  const lists = await Promise.all(unique.map((id) => loadRoster(sport, id)))
   return Object.fromEntries(unique.map((id, i) => [id, lists[i]]))
 }
 
 export default function App() {
-  const [meta, setMeta] = useState<SportMeta | null>(null)
+  // Metadaten aller Sportarten vorab laden, damit ein Wechsel im Setup die Eingaben nicht verliert
+  const [metas, setMetas] = useState<Record<string, SportMeta>>({})
+  const [metaErrors, setMetaErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
   const [game, setGame] = useState<Game | null>(() => loadGame())
+  const [selectedSport, setSelectedSport] = useState(() => loadSport() ?? DEFAULT_SPORT)
   const [rosters, setRosters] = useState<Record<string, RosterPlayer[]>>({})
   const [starting, setStarting] = useState(false)
   const [stats, setStats] = useState(() => loadStats())
 
   useEffect(() => {
-    loadMeta(SPORT)
-      .then(setMeta)
-      .catch((e: Error) => setError(e.message))
+    for (const s of SPORTS) {
+      loadMeta(s.id)
+        .then((m) => setMetas((all) => ({ ...all, [s.id]: m })))
+        .catch((e: Error) => setMetaErrors((all) => ({ ...all, [s.id]: e.message })))
+    }
   }, [])
+
+  // Ein laufendes Spiel bestimmt die Sportart; ohne Daten für die gewählte auf eine vorhandene ausweichen
+  const loadedSports = new Set(Object.keys(metas))
+  const allSettled = SPORTS.every((s) => metas[s.id] || metaErrors[s.id])
+  const fallbackSport = allSettled && !metas[selectedSport] ? SPORTS.find((s) => metas[s.id])?.id : undefined
+  const sport = sportById(game?.sport ?? fallbackSport ?? selectedSport)
+  const meta = metas[sport.id] ?? null
 
   // Nach einem Neuladen der Seite die Kader des laufenden Spiels wieder holen
   useEffect(() => {
     if (!game) return
     const missing = game.rounds.map((r) => r.teamId).filter((id) => !rosters[id])
     if (missing.length === 0) return
-    loadRosters(missing)
+    loadRosters(game.sport, missing)
       .then((loaded) => setRosters((r) => ({ ...r, ...loaded })))
       .catch((e: Error) => setError(e.message))
   }, [game, rosters])
@@ -44,6 +55,11 @@ export default function App() {
 
   const teams = useMemo(() => new Map(meta?.teams.map((t) => [t.id, t]) ?? []), [meta])
   const categories = useMemo(() => new Map(meta?.categories.map((c) => [c.key, c]) ?? []), [meta])
+
+  const changeSport = (id: string) => {
+    setSelectedSport(id)
+    saveSport(id)
+  }
 
   const startGame = async (settings: Settings) => {
     if (!meta) return
@@ -59,11 +75,11 @@ export default function App() {
         teamId,
         categoryKey: settings.categoryMode === 'fixed' ? fixedCategory : pickRandom(pool).key,
       }))
-      const loaded = await loadRosters(teamIds)
+      const loaded = await loadRosters(sport.id, teamIds)
       setRosters((r) => ({ ...r, ...loaded }))
       setGame({
         id: crypto.randomUUID(),
-        sport: SPORT,
+        sport: sport.id,
         settings,
         rounds,
         target: computeTarget(rounds, loaded),
@@ -107,12 +123,12 @@ export default function App() {
     setGame(updated)
   }
 
-  if (error && !meta) {
+  if (!meta && metaErrors[sport.id] && (allSettled || game)) {
     return (
       <main className="app">
         <h1>TotalGuesser</h1>
         <p className="error">
-          Keine Daten gefunden ({error}). Zuerst <code>scripts/nba_import.py</code> ausführen.
+          Keine Daten gefunden ({metaErrors[sport.id]}). Zuerst <code>scripts/{sport.importScript}</code> ausführen.
         </p>
       </main>
     )
@@ -147,6 +163,9 @@ export default function App() {
         <>
           <p className="lead">Team, Kategorie, Zielzahl – wer nach allen Runden am nächsten dran ist, gewinnt.</p>
           <Setup
+            sport={sport}
+            availableSports={loadedSports}
+            onSportChange={changeSport}
             categories={meta.categories}
             initial={loadLastSettings()}
             stats={stats}
@@ -164,7 +183,7 @@ export default function App() {
           teams={teams}
           categories={categories}
           rosters={rosters}
-          minCareerPoints={meta.min_career_points}
+          rosterNote={rosterNote(meta)}
           onPick={pick}
           onUndo={undo}
           onReveal={() => setGame({ ...game, phase: 'reveal' })}

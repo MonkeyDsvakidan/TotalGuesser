@@ -6,6 +6,7 @@ interface Props {
 }
 
 function scopeHint(category: Category, team: Team): string {
+  if (category.hint) return category.hint
   switch (category.scope) {
     case 'career':
       return category.group === 'single_game'

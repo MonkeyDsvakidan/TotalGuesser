@@ -5,6 +5,7 @@ import { standings } from './logic'
 const GAME_KEY = 'totalguesser.game'
 const STATS_KEY = 'totalguesser.stats'
 const SETTINGS_KEY = 'totalguesser.lastSettings'
+const SPORT_KEY = 'totalguesser.sport'
 
 function read<T>(key: string): T | null {
   try {
@@ -29,6 +30,9 @@ export const saveGame = (game: Game | null) => write(GAME_KEY, game)
 
 export const loadLastSettings = () => read<Partial<Settings>>(SETTINGS_KEY)
 export const saveLastSettings = (settings: Settings) => write(SETTINGS_KEY, settings)
+
+export const loadSport = () => read<string>(SPORT_KEY)
+export const saveSport = (sport: string) => write(SPORT_KEY, sport)
 
 export interface PlayerRecord {
   games: number

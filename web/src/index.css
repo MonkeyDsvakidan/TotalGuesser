@@ -244,7 +244,8 @@ legend {
   background: var(--accent-soft);
 }
 
-.group-card.disabled {
+.group-card.disabled,
+.segmented label.disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }

@@ -17,6 +17,13 @@ export async function loadMeta(sport: string): Promise<SportMeta> {
   return meta
 }
 
+// Hinweis, wenn ein Spieler nicht gefunden wird; NBA-Daten haben nur min_career_points
+export function rosterNote(meta: SportMeta): string | null {
+  if (meta.roster_note) return meta.roster_note
+  if (meta.min_career_points) return `nur Spieler ab ${meta.min_career_points.toLocaleString('de-CH')} Karrierepunkten`
+  return null
+}
+
 export function loadRoster(sport: string, teamId: string): Promise<RosterPlayer[]> {
   return getJson(`${sport}/teams/${teamId}.json`)
 }
