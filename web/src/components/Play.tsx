@@ -10,13 +10,13 @@ interface Props {
   teams: Map<string, Team>
   categories: Map<string, Category>
   rosters: Record<string, RosterPlayer[]>
-  minCareerPoints?: number
+  rosterNote: string | null
   onPick: (player: RosterPlayer | null) => void
   onUndo: () => void
   onReveal: () => void
 }
 
-export default function Play({ game, teams, categories, rosters, minCareerPoints, onPick, onUndo, onReveal }: Props) {
+export default function Play({ game, teams, categories, rosters, rosterNote, onPick, onUndo, onReveal }: Props) {
   const turn = currentTurn(game)
   const anyPick = game.picks.some((p) => p.length > 0)
 
@@ -36,7 +36,7 @@ export default function Play({ game, teams, categories, rosters, minCareerPoints
             roster={rosters[game.rounds[turn.round].teamId] ?? []}
             taken={namedIds(game)}
             onPick={onPick}
-            minCareerPoints={minCareerPoints}
+            rosterNote={rosterNote}
           />
           <div className="actions">
             <button type="button" className="secondary" onClick={() => onPick(null)}>

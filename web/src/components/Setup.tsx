@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Category, CategoryGroup, Scope } from '../lib/types'
 import type { Settings } from '../game/types'
 import type { PlayerRecord } from '../game/storage'
+import { SPORTS, type Sport } from '../lib/sports'
 
 const MIN_PLAYERS = 2
 const MAX_PLAYERS = 6
@@ -15,9 +16,9 @@ const DEFAULT_SETTINGS: Settings = {
   rule: 'closest',
 }
 
-const GROUPS: { id: CategoryGroup; title: string; description: string }[] = [
-  { id: 'single_game', title: 'Einzelnes Spiel', description: 'Career Highs – das beste Spiel eines Spielers' },
-  { id: 'multi_game', title: 'Karriere & mehrere Spiele', description: 'Totals, Spiele, Saisons und Saisonschnitte' },
+const GROUPS: { id: CategoryGroup; title: string }[] = [
+  { id: 'single_game', title: 'Einzelnes Spiel' },
+  { id: 'multi_game', title: 'Karriere & mehrere Spiele' },
 ]
 
 const SCOPE_TITLES: Record<Scope, string> = {
@@ -27,6 +28,9 @@ const SCOPE_TITLES: Record<Scope, string> = {
 }
 
 interface Props {
+  sport: Sport
+  availableSports: Set<string> // Sportarten, für die Daten vorhanden sind
+  onSportChange: (sport: string) => void
   categories: Category[]
   initial: Partial<Settings> | null
   stats: Record<string, PlayerRecord>
@@ -34,7 +38,7 @@ interface Props {
   onStart: (settings: Settings) => void
 }
 
-export default function Setup({ categories, initial, stats, starting, onStart }: Props) {
+export default function Setup({ sport, availableSports, onSportChange, categories, initial, stats, starting, onStart }: Props) {
   const [settings, setSettings] = useState<Settings>({ ...DEFAULT_SETTINGS, ...initial })
   const update = (patch: Partial<Settings>) => setSettings((s) => ({ ...s, ...patch }))
 
@@ -60,6 +64,27 @@ export default function Setup({ categories, initial, stats, starting, onStart }:
         if (valid) onStart({ ...settings, categoryKey: selectedKey, players: names })
       }}
     >
+      <fieldset>
+        <legend>Sportart</legend>
+        <div className="segmented">
+          {SPORTS.map((s) => {
+            const available = availableSports.has(s.id)
+            return (
+              <label key={s.id} className={`${sport.id === s.id ? 'on' : ''}${available ? '' : ' disabled'}`}>
+                <input
+                  type="radio"
+                  name="sport"
+                  checked={sport.id === s.id}
+                  disabled={!available}
+                  onChange={() => onSportChange(s.id)}
+                />
+                {s.label}
+              </label>
+            )
+          })}
+        </div>
+      </fieldset>
+
       <fieldset>
         <legend>Spieler</legend>
         {settings.players.map((name, i) => (
@@ -118,7 +143,7 @@ export default function Setup({ categories, initial, stats, starting, onStart }:
                   onChange={() => update({ categoryGroup: g.id, categoryKey: null })}
                 />
                 <span className="group-title">{g.title}</span>
-                <span className="muted small">{available ? g.description : 'Noch keine Daten – kommt mit dem nächsten Import'}</span>
+                <span className="muted small">{available ? sport.groupDescriptions[g.id] : 'Noch keine Daten – kommt mit dem nächsten Import'}</span>
               </label>
             )
           })}

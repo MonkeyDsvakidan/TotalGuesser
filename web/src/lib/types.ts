@@ -9,6 +9,7 @@ export interface Category {
   scope: Scope
   group: CategoryGroup
   unit: string | null
+  hint?: string // ersetzt den Standardhinweis zum Scope (z. B. Datenabdeckung beim Fussball)
 }
 
 export interface Team {
@@ -24,6 +25,7 @@ export interface SportMeta {
   sport: string
   updated_at: string
   min_career_points?: number
+  roster_note?: string | null // wer ins Spiel kommt, z. B. "nur Spieler ab 30 erfassten Einsätzen"
   categories: Category[]
   teams: Team[]
 }
