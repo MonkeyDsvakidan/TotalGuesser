@@ -41,7 +41,13 @@ body {
 .app {
   max-width: 44rem;
   margin: 0 auto;
-  padding: 0 1rem 2rem;
+  /* safe-area: Notch und Home-Leiste, wenn die Seite vom Home-Bildschirm aus startet */
+  padding: env(safe-area-inset-top) max(1rem, env(safe-area-inset-right)) calc(2rem + env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+}
+
+.app:has(> .top) {
+  padding-top: 0;
 }
 
 h1 {
@@ -79,7 +85,7 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 0;
+  padding: calc(0.75rem + env(safe-area-inset-top)) 0 0.75rem;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   margin-bottom: 1rem;
@@ -306,6 +312,26 @@ legend {
 }
 
 /* Runde */
+/* Zielzahl vor dem Start: − [Zahl] + */
+.target-editor {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.target-editor input {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.target-editor button.icon {
+  width: 3.25rem;
+  font-size: 1.4rem;
+}
+
 .turn {
   background: var(--surface);
   border: 1px solid var(--border);

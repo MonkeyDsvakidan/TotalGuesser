@@ -99,16 +99,22 @@ export function pickTeams(teamIds: string[], count: number, random: () => number
   return result
 }
 
-// Reihenfolge rotiert jede Runde: Runde 0 beginnt Spieler 0, Runde 1 Spieler 1, ...
-export function turnOrder(roundIndex: number, playerCount: number): number[] {
-  return Array.from({ length: playerCount }, (_, i) => (roundIndex + i) % playerCount)
+// Reihenfolge rotiert jede Runde: Runde 0 beginnt der Startspieler, Runde 1 der nächste, ...
+export function turnOrder(roundIndex: number, playerCount: number, startPlayer = 0): number[] {
+  return Array.from({ length: playerCount }, (_, i) => (startPlayer + roundIndex + i) % playerCount)
 }
 
 export function currentTurn(game: Game): { round: number; playerIndex: number } | null {
   const n = game.settings.players.length
   const round = game.picks.findIndex((picks) => picks.length < n)
   if (round === -1) return null
-  return { round, playerIndex: turnOrder(round, n)[game.picks[round].length] }
+  return { round, playerIndex: turnOrder(round, n, game.startPlayer)[game.picks[round].length] }
+}
+
+// Schrittweite der +/−-Knöpfe: Einerstelle der zweiten signifikanten Ziffer (74 -> 1, 9000 -> 100)
+export function targetStep(target: number): number {
+  if (target < 10) return 1
+  return 10 ** (Math.floor(Math.log10(target)) - 1)
 }
 
 export function namedIds(game: Game): Set<string> {

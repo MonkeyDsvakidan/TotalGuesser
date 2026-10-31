@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Play from './components/Play'
 import Reveal from './components/Reveal'
 import Setup from './components/Setup'
+import TargetSetup from './components/TargetSetup'
 import { computeTarget, currentTurn, formatValue, pickRandom, pickTeams, revealOrder } from './game/logic'
 import { loadGame, loadLastSettings, loadSport, loadStats, recordResult, saveGame, saveLastSettings, saveSport } from './game/storage'
 import type { Game, Settings } from './game/types'
@@ -83,8 +84,10 @@ export default function App() {
         settings,
         rounds,
         target: computeTarget(rounds, loaded),
+        // Wer beginnt, ist zufällig; danach rotiert die Reihenfolge wie gewohnt
+        startPlayer: Math.floor(Math.random() * settings.players.length),
         picks: rounds.map(() => []),
-        phase: 'play',
+        phase: 'target',
         revealed: 0,
       })
     } catch (e) {
@@ -149,7 +152,7 @@ export default function App() {
     <main className="app">
       <header className="top">
         <h1>TotalGuesser</h1>
-        {game && (
+        {game && game.phase !== 'target' && (
           <div className="target" aria-label="Zielzahl">
             <span className="muted small">Ziel</span>
             <strong>{formatValue(game.target)}</strong>
@@ -177,6 +180,17 @@ export default function App() {
 
       {game && !rostersReady && <p className="muted">Lade Teams …</p>}
 
+      {game && rostersReady && game.phase === 'target' && (
+        <TargetSetup
+          game={game}
+          teams={teams}
+          categories={categories}
+          onTargetChange={(target) => setGame({ ...game, target })}
+          onReroll={() => setGame({ ...game, target: computeTarget(game.rounds, rosters) })}
+          onStart={() => setGame({ ...game, phase: 'play' })}
+        />
+      )}
+
       {game && rostersReady && game.phase === 'play' && (
         <Play
           game={game}
@@ -203,7 +217,7 @@ export default function App() {
         />
       )}
 
-      {game && game.phase === 'play' && (
+      {game && game.phase !== 'reveal' && (
         <button
           type="button"
           className="link"

@@ -10,6 +10,7 @@ import {
   roundNicely,
   searchRoster,
   standings,
+  targetStep,
   totals,
   turnOrder,
 } from './logic'
@@ -119,6 +120,22 @@ describe('Zugreihenfolge', () => {
     expect(currentTurn(game([[], []]))).toEqual({ round: 0, playerIndex: 0 })
     expect(currentTurn(game([[pick(0, 1), pick(1, 1)], []]))).toEqual({ round: 1, playerIndex: 1 })
     expect(currentTurn(game([[pick(0, 1), pick(1, 1)], [pick(1, 1), pick(0, 1)]]))).toBeNull()
+  })
+
+  it('beginnt beim Startspieler und rotiert von dort aus', () => {
+    expect(turnOrder(0, 3, 2)).toEqual([2, 0, 1])
+    expect(turnOrder(1, 3, 2)).toEqual([0, 1, 2])
+    expect(currentTurn(game([[], []], { startPlayer: 1 }))).toEqual({ round: 0, playerIndex: 1 })
+    expect(currentTurn(game([[pick(1, 1), pick(0, 1)], []], { startPlayer: 1 }))).toEqual({ round: 1, playerIndex: 0 })
+  })
+})
+
+describe('targetStep', () => {
+  it('passt die Schrittweite der Grösse der Zielzahl an', () => {
+    expect(targetStep(7.3)).toBe(1)
+    expect(targetStep(74)).toBe(1)
+    expect(targetStep(650)).toBe(10)
+    expect(targetStep(9000)).toBe(100)
   })
 })
 
