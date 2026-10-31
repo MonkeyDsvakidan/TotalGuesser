@@ -30,7 +30,9 @@ export interface Game {
   settings: Settings
   rounds: RoundSpec[]
   target: number
+  startPlayer?: number // beginnt Runde 1; fehlt bei älteren gespeicherten Spielen (= 0)
   picks: Pick[][] // pro Runde, in Zugreihenfolge
-  phase: 'play' | 'reveal'
+  // 'target' = Zielzahl kann vor dem Start noch angepasst werden
+  phase: 'target' | 'play' | 'reveal'
   revealed: number // Anzahl aufgedeckter Picks
 }

@@ -91,13 +91,18 @@ https://monkeydsvakidan.github.io/TotalGuesser/
 
 Einmalig nötig: im Repo unter **Settings → Pages → Build and deployment → Source** «GitHub Actions» wählen.
 
+### 5. Auf dem iPhone-Home-Bildschirm
+
+Seite in Safari öffnen → Teilen-Knopf → **Zum Home-Bildschirm**. Das Spiel startet dann wie eine App ohne Safari-Leisten (Manifest und Icons in `web/public/`). Die Icons erzeugt `python scripts/make_icons.py` (braucht Pillow).
+
 ## Spielablauf (Modus 1)
 
 1. **Setup:** Sportart (NBA oder Fussball), 2–6 Spieler, 3/5/7/10 Runden, Regel «Nur Nähe zählt» oder «Drüber = verloren». Kategorien sind getrennt in **Einzelnes Spiel** (Career Highs) und **Karriere & mehrere Spiele**; innerhalb der Gruppe fest oder pro Runde neu.
-2. **Runden:** Pro Runde ein zufälliges aktives Team; Teams wiederholen sich erst, wenn alle dran waren. Die Reihenfolge rotiert jede Runde.
-3. **Eingabe:** Suche nach Wortanfängen und Spitznamen, nur Spieler des Rundenteams. Bereits genannte Spieler sind ausgegraut. Passen zählt 0, «Rückgängig» nimmt den letzten Pick zurück.
-4. **Auflösung:** Werte einzeln oder alle aufdecken, danach Rangliste, Abstand zum Ziel und der perfekte letzte Pick.
-5. **Bilanz:** Siege pro Spielername werden im Browser gespeichert. Ein laufendes Spiel übersteht auch ein Neuladen der Seite.
+2. **Zielzahl:** Vor der ersten Runde wird der Vorschlag angezeigt; er lässt sich mit −/+ oder per Eingabe anpassen oder neu würfeln. Nach «Start» ist das Ziel fix.
+3. **Runden:** Pro Runde ein zufälliges aktives Team; Teams wiederholen sich erst, wenn alle dran waren. Wer in Runde 1 beginnt, ist zufällig; danach rotiert die Reihenfolge jede Runde.
+4. **Eingabe:** Suche nach Wortanfängen und Spitznamen, nur Spieler des Rundenteams. Bereits genannte Spieler sind ausgegraut. Passen zählt 0, «Rückgängig» nimmt den letzten Pick zurück.
+5. **Auflösung:** Werte einzeln oder alle aufdecken, danach Rangliste, Abstand zum Ziel und der perfekte letzte Pick.
+6. **Bilanz:** Siege pro Spielername werden im Browser gespeichert. Ein laufendes Spiel übersteht auch ein Neuladen der Seite.
 
 ## Stand
 
