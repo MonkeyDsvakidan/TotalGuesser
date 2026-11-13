@@ -523,3 +523,22 @@ footer {
   margin-top: 2rem;
   text-align: center;
 }
+
+/* Fehlermeldung mit Erklärung und Ausweg */
+.error-box {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+  margin: 1rem 0;
+}
+
+.error-box p {
+  margin: 0;
+}
+
+/* Pokal-Symbol beim Sieger (statt Emoji) */
+.trophy {
+  color: var(--accent);
+  margin-left: 0.35rem;
+  vertical-align: -0.2em;
+}

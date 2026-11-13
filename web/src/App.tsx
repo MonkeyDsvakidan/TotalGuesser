@@ -130,9 +130,12 @@ export default function App() {
     return (
       <main className="app">
         <h1>TotalGuesser</h1>
-        <p className="error">
-          Keine Daten gefunden ({metaErrors[sport.id]}). Zuerst <code>scripts/{sport.importScript}</code> ausführen.
-        </p>
+        <div className="error-box" role="alert">
+          <p className="error">Die Spieldaten konnten nicht geladen werden.</p>
+          <p className="muted small">Prüfe die Internetverbindung und lade die Seite neu. Hilft das nicht, fehlen die Daten für diese Sportart (<code>scripts/{sport.importScript}</code> ausführen).</p>
+          <button type="button" onClick={() => window.location.reload()}>Neu laden</button>
+          <p className="muted small">Details: {metaErrors[sport.id]}</p>
+        </div>
       </main>
     )
   }
@@ -160,7 +163,12 @@ export default function App() {
         )}
       </header>
 
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <div className="error-box" role="alert">
+          <p className="error">Das Spiel konnte nicht geladen werden. Prüfe die Internetverbindung und versuche es nochmals.</p>
+          <p className="muted small">Details: {error}</p>
+        </div>
+      )}
 
       {!game && (
         <>
