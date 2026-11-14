@@ -55,7 +55,18 @@ export default function Reveal({ game, teams, categories, rosters, onRevealNext,
                     <span className="rank">{s.rank}.</span>
                     <span className="name">
                       {game.settings.players[s.playerIndex]}
-                      {s.winner && ' 🏆'}
+                      {s.winner && (
+                        <svg className="trophy" viewBox="0 0 24 24" width="18" height="18" role="img" aria-label="Sieger">
+                          <path
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"
+                          />
+                        </svg>
+                      )}
                     </span>
                     <span className="total">{formatValue(s.total)}</span>
                     <span className="muted small">
