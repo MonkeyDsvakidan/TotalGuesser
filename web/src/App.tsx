@@ -21,6 +21,9 @@ export default function App() {
   const [metas, setMetas] = useState<Record<string, SportMeta>>({})
   const [metaErrors, setMetaErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
+  // Fehler beim Wiederherstellen eines gespeicherten Spiels (Kader laden) – eigener Zustand, weil dann die Spiel-Bedienung fehlt
+  const [restoreError, setRestoreError] = useState<string | null>(null)
+  const [rosterTry, setRosterTry] = useState(0)
   const [game, setGame] = useState<Game | null>(() => loadGame())
   const [selectedSport, setSelectedSport] = useState(() => loadSport() ?? DEFAULT_SPORT)
   const [rosters, setRosters] = useState<Record<string, RosterPlayer[]>>({})
@@ -49,8 +52,8 @@ export default function App() {
     if (missing.length === 0) return
     loadRosters(game.sport, missing)
       .then((loaded) => setRosters((r) => ({ ...r, ...loaded })))
-      .catch((e: Error) => setError(e.message))
-  }, [game, rosters])
+      .catch((e: Error) => setRestoreError(e.message))
+  }, [game, rosters, rosterTry])
 
   useEffect(() => saveGame(game), [game])
 
@@ -66,6 +69,7 @@ export default function App() {
     if (!meta) return
     saveLastSettings(settings)
     setStarting(true)
+    setError(null)
     try {
       const activeTeams = meta.teams.filter((t) => t.active).map((t) => t.id)
       const teamIds = pickTeams(activeTeams.length ? activeTeams : meta.teams.map((t) => t.id), settings.rounds)
@@ -163,10 +167,28 @@ export default function App() {
         )}
       </header>
 
-      {error && (
+      {error && !game && (
         <div className="error-box" role="alert">
-          <p className="error">Das Spiel konnte nicht geladen werden. Prüfe die Internetverbindung und versuche es nochmals.</p>
+          <p className="error">Das Spiel konnte nicht gestartet werden.</p>
+          <p className="muted small">Prüfe die Internetverbindung und tippe dann nochmals auf «Spiel starten». Deine Einstellungen bleiben erhalten.</p>
           <p className="muted small">Details: {error}</p>
+        </div>
+      )}
+
+      {game && restoreError && (
+        <div className="error-box" role="alert">
+          <p className="error">Die Teams für dein gespeichertes Spiel konnten nicht geladen werden.</p>
+          <p className="muted small">Dein Spielstand ist gespeichert und geht nicht verloren. Prüfe die Internetverbindung und tippe auf «Nochmals laden».</p>
+          <button
+            type="button"
+            onClick={() => {
+              setRestoreError(null)
+              setRosterTry((n) => n + 1)
+            }}
+          >
+            Nochmals laden
+          </button>
+          <p className="muted small">Details: {restoreError}</p>
         </div>
       )}
 
@@ -186,7 +208,7 @@ export default function App() {
         </>
       )}
 
-      {game && !rostersReady && <p className="muted">Lade Teams …</p>}
+      {game && !rostersReady && !restoreError && <p className="muted">Lade Teams …</p>}
 
       {game && rostersReady && game.phase === 'target' && (
         <TargetSetup
