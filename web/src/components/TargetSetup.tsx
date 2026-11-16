@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { formatValue, targetStep } from '../game/logic'
 import type { Game } from '../game/types'
 import type { Category, Team } from '../lib/types'
+import Icon from './Icon'
 import PicksTable from './PicksTable'
 
 interface Props {
@@ -21,12 +22,12 @@ function parseTarget(text: string): number | null {
 
 // Vor der ersten Runde: Zielzahl übernehmen, anpassen oder neu würfeln; nach dem Start ist sie fix
 export default function TargetSetup({ game, teams, categories, onTargetChange, onReroll, onStart }: Props) {
-  const [draft, setDraft] = useState(String(game.target))
+  const [draft, setDraft] = useState(formatValue(game.target))
   const [shownTarget, setShownTarget] = useState(game.target)
   // Zielzahl wurde ausserhalb des Eingabefelds geändert (Knöpfe, neu würfeln)
   if (shownTarget !== game.target) {
     setShownTarget(game.target)
-    setDraft(String(game.target))
+    setDraft(formatValue(game.target))
   }
 
   const valid = parseTarget(draft) !== null
@@ -43,14 +44,14 @@ export default function TargetSetup({ game, teams, categories, onTargetChange, o
     <div className="play">
       <section className="turn target-setup">
         <h2>Zielzahl festlegen</h2>
-        <p className="muted small">
+        <p className="muted">
           {categoryKeys.length === 1 ? categories.get(categoryKeys[0])?.label : 'Kategorie wechselt jede Runde'} ·{' '}
           {game.rounds.length} Runden
         </p>
 
-        <div className="target-editor">
+        <div className="target-editor board">
           <button type="button" className="icon" aria-label={`Ziel um ${formatValue(step)} senken`} onClick={() => change(game.target - step)}>
-            −
+            <Icon name="minus" />
           </button>
           <input
             type="text"
@@ -67,7 +68,7 @@ export default function TargetSetup({ game, teams, categories, onTargetChange, o
             }}
           />
           <button type="button" className="icon" aria-label={`Ziel um ${formatValue(step)} erhöhen`} onClick={() => change(game.target + step)}>
-            +
+            <Icon name="plus" />
           </button>
         </div>
         {!valid && <p className="error small">Bitte eine Zahl grösser als 0 eingeben.</p>}
@@ -84,6 +85,7 @@ export default function TargetSetup({ game, teams, categories, onTargetChange, o
             Start
           </button>
           <button type="button" className="secondary" onClick={onReroll}>
+            <Icon name="dice" />
             Neu würfeln
           </button>
         </div>

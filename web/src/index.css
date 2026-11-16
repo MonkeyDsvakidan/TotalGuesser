@@ -1,31 +1,82 @@
+/* ============================================================
+   Design-System TotalGuesser – «Anzeigetafel»
+   Ruhige graue Oberfläche; Farbe und Ziffern nur auf der Tafel
+   (Zielzahl, Runde, Spielstand). Tafel ist in hell und dunkel dunkel.
+   ============================================================ */
 :root {
-  --bg: #f7f7f5;
-  --surface: #ffffff;
-  --fg: #1c1c1a;
-  --muted: #6b6b66;
-  --border: #deded9;
-  --accent: #c2410c;
-  --accent-fg: #ffffff;
-  --accent-soft: #fdeee6;
-  --danger: #b91c1c;
-  --radius: 10px;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  line-height: 1.4;
+  /* Schrift: Barlow für Text, Barlow Condensed für Tafel-Ziffern */
+  --font-ui: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-board: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+  --text-s: 0.875rem;
+  --text-m: 1rem;
+  --text-l: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-board: 3.5rem;
+
+  /* Abstände (4er-Raster) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Ecken: Bedienelemente, Tafeln/Karten, Chips */
+  --radius-s: 8px;
+  --radius-m: 14px;
+  --radius-pill: 999px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --fast: 150ms;
+  --slow: 600ms;
+
+  /* Hell */
+  --bg: oklch(0.97 0.003 90);
+  --surface: oklch(1 0 0);
+  --raised: oklch(0.94 0.004 90);
+  --fg: oklch(0.21 0.006 90);
+  --fg-2: oklch(0.4 0.006 90);
+  --muted: oklch(0.5 0.006 90);
+  --line: oklch(0.21 0.006 90 / 0.12);
+  --accent: oklch(0.52 0.16 42);
+  --accent-fg: oklch(1 0 0);
+  --accent-ink: oklch(0.5 0.16 42);
+  --accent-soft: oklch(0.95 0.03 60);
+  --danger: oklch(0.5 0.19 27);
+
+  /* Tafel (immer dunkel) */
+  --board-bg: oklch(0.21 0.006 90);
+  --board-fg: oklch(0.96 0.003 90);
+  --board-muted: oklch(0.74 0.006 90);
+  --board-line: oklch(1 0 0 / 0.1);
+  --board-digit: oklch(0.84 0.15 78);
+  --board-bust: oklch(0.72 0.16 28);
+
+  color-scheme: light;
+  font-family: var(--font-ui);
+  font-size: var(--text-m);
+  line-height: 1.45;
   color: var(--fg);
   background: var(--bg);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161615;
-    --surface: #1f1f1d;
-    --fg: #ececea;
-    --muted: #9a9a94;
-    --border: #34342f;
-    --accent: #fb923c;
-    --accent-fg: #1c1c1a;
-    --accent-soft: #3a2416;
-    --danger: #f87171;
+    --bg: oklch(0.17 0.004 90);
+    --surface: oklch(0.21 0.004 90);
+    --raised: oklch(0.25 0.004 90);
+    --fg: oklch(0.94 0.003 90);
+    --fg-2: oklch(0.8 0.004 90);
+    --muted: oklch(0.7 0.005 90);
+    --line: oklch(1 0 0 / 0.1);
+    --accent: oklch(0.78 0.15 68);
+    --accent-fg: oklch(0.2 0.01 60);
+    --accent-ink: oklch(0.8 0.14 70);
+    --accent-soft: oklch(0.3 0.04 60);
+    --danger: oklch(0.72 0.16 25);
+    --board-bg: oklch(0.12 0.004 90);
+    color-scheme: dark;
   }
 }
 
@@ -36,29 +87,34 @@
 body {
   margin: 0;
   background: var(--bg);
+  min-height: 100dvh;
 }
 
 .app {
-  max-width: 44rem;
+  max-width: 46rem;
   margin: 0 auto;
   /* safe-area: Notch und Home-Leiste, wenn die Seite vom Home-Bildschirm aus startet */
-  padding: env(safe-area-inset-top) max(1rem, env(safe-area-inset-right)) calc(2rem + env(safe-area-inset-bottom))
-    max(1rem, env(safe-area-inset-left));
+  padding: env(safe-area-inset-top) max(var(--space-4), env(safe-area-inset-right))
+    calc(var(--space-6) + env(safe-area-inset-bottom)) max(var(--space-4), env(safe-area-inset-left));
 }
 
 .app:has(> .top) {
   padding-top: 0;
 }
 
-h1 {
-  color: var(--accent);
-  font-size: 1.4rem;
-  margin: 0;
+h1,
+h2 {
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 h2 {
-  font-size: 1.15rem;
-  margin: 0.5rem 0;
+  font-size: var(--text-l);
+  margin: 0 0 var(--space-3);
+}
+
+p {
+  margin: var(--space-2) 0;
 }
 
 .muted {
@@ -66,7 +122,12 @@ h2 {
 }
 
 .small {
-  font-size: 0.85rem;
+  font-size: var(--text-s);
+}
+
+.num,
+.digits {
+  font-variant-numeric: tabular-nums;
 }
 
 .error {
@@ -74,7 +135,50 @@ h2 {
 }
 
 .lead {
-  color: var(--muted);
+  color: var(--fg-2);
+  font-size: var(--text-l);
+  line-height: 1.35;
+  margin: var(--space-2) 0 var(--space-6);
+  max-width: 34rem;
+}
+
+/* Logo: Wortmarke in der Tafel-Schrift */
+.logo {
+  font-family: var(--font-board);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+.logo span {
+  color: var(--accent-ink);
+}
+
+/* ---------- Tafel ---------- */
+.board {
+  background: var(--board-bg);
+  color: var(--board-fg);
+  border: 1px solid var(--board-line);
+  border-radius: var(--radius-m);
+}
+
+.digits {
+  font-family: var(--font-board);
+  font-weight: 600;
+  color: var(--board-digit);
+  line-height: 1;
+}
+
+.board-label {
+  color: var(--board-muted);
+  font-size: var(--text-s);
+  font-weight: 500;
+}
+
+.board-hint {
+  color: var(--board-muted);
+  font-size: var(--text-s);
 }
 
 /* Kopfzeile mit fixierter Zielzahl */
@@ -85,25 +189,27 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(0.75rem + env(safe-area-inset-top)) 0 0.75rem;
+  gap: var(--space-4);
+  min-height: 64px;
+  padding: calc(var(--space-3) + env(safe-area-inset-top)) 0 var(--space-3);
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--space-5);
 }
 
 .target {
   display: flex;
   align-items: baseline;
-  gap: 0.4rem;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-s);
 }
 
 .target strong {
-  font-size: 1.6rem;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xl);
 }
 
-/* Formularelemente */
+/* ---------- Formularelemente ---------- */
 input,
 select,
 button {
@@ -114,24 +220,48 @@ button {
 input,
 select {
   width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
   background: var(--surface);
 }
 
-input:focus,
-select:focus {
+input:focus-visible,
+select:focus-visible,
+button:focus-visible,
+summary:focus-visible {
   outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input:focus-visible {
   outline-offset: -1px;
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
   cursor: pointer;
-  border-radius: var(--radius);
-  padding: 0.65rem 1rem;
-  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line);
   background: var(--surface);
+  font-weight: 500;
+  transition:
+    background-color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
+}
+
+button:not(:disabled):hover {
+  background: var(--raised);
+}
+
+button:not(:disabled):active {
+  transform: scale(0.98);
 }
 
 button:disabled {
@@ -142,12 +272,23 @@ button:disabled {
 button.primary {
   background: var(--accent);
   color: var(--accent-fg);
-  border-color: var(--accent);
+  border-color: transparent;
   font-weight: 600;
 }
 
+button.primary:not(:disabled):hover {
+  background: var(--accent);
+  filter: brightness(1.06);
+}
+
+button.big {
+  min-height: 52px;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-l);
+}
+
 button.icon {
-  width: 2.75rem;
+  width: 44px;
   flex: none;
   padding: 0;
 }
@@ -157,64 +298,115 @@ button.link {
   background: none;
   color: var(--muted);
   text-decoration: underline;
-  padding: 1rem 0;
+  padding: var(--space-4) 0;
+}
+
+button.link:hover {
+  background: none;
+  color: var(--fg);
+}
+
+.icon-svg {
+  flex: none;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
 }
 
-/* Setup */
+/* ---------- Setup: 3 Schritte + «Mehr Optionen» ---------- */
 .setup {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-6);
 }
 
 fieldset {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border: none;
   margin: 0;
-  padding: 0.75rem;
+  padding: 0;
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: var(--space-3);
   font-weight: 600;
-  padding: 0 0.25rem;
+}
+
+fieldset.step > legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-l);
+}
+
+/* Schritt-Nummer als kleine Tafel-Ziffer */
+.step-no {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-s);
+  background: var(--board-bg);
+  color: var(--board-digit);
+  font-family: var(--font-board);
+  font-weight: 600;
+  font-size: var(--text-l);
+}
+
+.players {
+  display: grid;
+  gap: var(--space-2);
 }
 
 .row {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
+}
+
+button.add {
+  justify-self: start;
 }
 
 .segmented {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--space-2);
 }
 
 .segmented label {
   flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
   text-align: center;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
   cursor: pointer;
+  transition: background-color var(--fast) var(--ease);
 }
 
-.segmented label.on {
+.segmented label.on,
+.chips label.on,
+.group-card.on {
   border-color: var(--accent);
   background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
   font-weight: 600;
 }
 
-.segmented input {
+.segmented input,
+.group-card input,
+.chips input {
   position: absolute;
   opacity: 0;
   width: 1px;
@@ -225,29 +417,33 @@ legend {
 .chips label:has(input:focus-visible),
 .group-card:has(input:focus-visible) {
   outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Kategorie-Gruppen: Einzelspiel vs. Karriere & mehrere Spiele */
 .groups {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .group-card {
   display: grid;
-  gap: 0.2rem;
+  gap: var(--space-1);
   align-content: start;
-  padding: 0.7rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
   cursor: pointer;
 }
 
-.group-card.on {
-  border: 2px solid var(--accent);
-  padding: calc(0.7rem - 1px) calc(0.75rem - 1px);
-  background: var(--accent-soft);
+.group-card.on .group-title {
+  color: var(--fg);
+}
+
+.group-card.on .muted {
+  color: var(--fg-2);
 }
 
 .group-card.disabled,
@@ -257,48 +453,84 @@ legend {
 }
 
 .group-title {
-  font-weight: 700;
+  font-weight: 600;
+}
+
+/* Mehr Optionen: zugeklappt mit Zusammenfassung der Einstellungen */
+.more {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.more summary {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4) 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.more summary::-webkit-details-marker {
+  display: none;
+}
+
+.more-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.more-title .icon-svg {
+  transition: transform var(--fast) var(--ease);
+}
+
+.more[open] .more-title .icon-svg {
+  transform: rotate(180deg);
+}
+
+.more[open] > fieldset {
+  margin-bottom: var(--space-5);
 }
 
 .category-list {
   display: grid;
-  gap: 0.6rem;
+  gap: var(--space-3);
 }
 
 .scope-title {
-  margin-bottom: 0.3rem;
+  margin-bottom: var(--space-2);
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--space-2);
 }
 
 .chips label {
-  padding: 0.4rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--text-s);
 }
 
-.chips label.on {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  font-weight: 600;
+.hint {
+  margin-top: calc(-1 * var(--space-4));
 }
 
-.group-card input,
-.chips input {
-  position: absolute;
-  opacity: 0;
-  width: 1px;
-  height: 1px;
+.stats h2 {
+  font-size: var(--text-m);
 }
 
 .stats ul,
-.standings {
+.standings,
+.scoreboard {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -307,89 +539,82 @@ legend {
 .stats li {
   display: flex;
   justify-content: space-between;
-  padding: 0.35rem 0;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line);
 }
 
-/* Runde */
-/* Zielzahl vor dem Start: − [Zahl] + */
-.target-editor {
-  display: flex;
-  gap: 0.5rem;
-  margin: 0.75rem 0 0.5rem;
-}
-
-.target-editor input {
-  text-align: center;
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
-}
-
-.target-editor button.icon {
-  width: 3.25rem;
-  font-size: 1.4rem;
-}
-
+/* ---------- Runde ---------- */
 .turn {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-5);
 }
 
 .round-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0.5rem 0;
+  gap: var(--space-4);
+  padding: var(--space-4);
 }
 
 .round-header img {
   flex: none;
+  /* Logos auf der dunklen Tafel: kleine helle Fläche, damit dunkle Logos sichtbar bleiben */
+  background: oklch(0.96 0.003 90);
+  border-radius: var(--radius-s);
+  padding: var(--space-1);
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
 }
 
 .team-name {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-family: var(--font-board);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.1;
+  margin: var(--space-1) 0;
 }
 
 .category {
   font-weight: 600;
-  color: var(--accent);
+  color: var(--board-digit);
 }
 
 .whose-turn {
-  margin-top: 1rem;
+  font-size: var(--text-xl);
+  margin: var(--space-5) 0 var(--space-3);
 }
 
 .search {
   position: relative;
 }
 
+.search input {
+  min-height: 52px;
+  font-size: var(--text-l);
+}
+
 .results {
   list-style: none;
-  margin: 0.25rem 0 0;
+  margin: var(--space-1) 0 0;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface);
   overflow: hidden;
 }
 
 .results li + li {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .results button {
   width: 100%;
-  display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
   border: none;
   border-radius: 0;
   text-align: left;
+  font-weight: 400;
 }
 
 .results button:not(:disabled):hover,
@@ -397,52 +622,105 @@ legend {
   background: var(--accent-soft);
 }
 
-.results .empty {
-  padding: 0.65rem 1rem;
+.results button:not(:disabled):active {
+  transform: none;
 }
 
-/* Tabelle */
+.results .empty {
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Zielzahl vor dem Start: − [Zahl] + auf der Tafel */
+.target-editor {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.target-editor input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-family: var(--font-board);
+  font-size: var(--text-board);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--board-digit);
+  font-variant-numeric: tabular-nums;
+  background: transparent;
+  border-color: transparent;
+}
+
+.target-editor button.icon {
+  width: 52px;
+  min-height: 52px;
+  background: oklch(1 0 0 / 0.08);
+  border-color: var(--board-line);
+  color: var(--board-fg);
+}
+
+.target-editor button.icon:not(:disabled):hover {
+  background: oklch(1 0 0 / 0.14);
+}
+
+/* ---------- Tabelle ---------- */
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
   background: var(--surface);
 }
 
 .picks {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--text-s);
 }
 
 .picks th,
 .picks td {
-  padding: 0.5rem;
+  padding: var(--space-2) var(--space-3);
   text-align: left;
   vertical-align: top;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   min-width: 6.5rem;
 }
 
 .picks thead th {
   font-weight: 600;
+  color: var(--fg-2);
 }
 
-.picks tbody th,
-.picks thead th:first-child,
-.picks tfoot th {
-  min-width: 4.5rem;
-  white-space: nowrap;
+.picks tbody th {
+  font-weight: 400;
+  min-width: 7rem;
+}
+
+.round-no {
+  display: inline-block;
+  min-width: 1.25em;
+  font-family: var(--font-board);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.round-team {
+  color: var(--fg-2);
 }
 
 .picks tfoot td,
 .picks tfoot th {
   border-bottom: none;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .value {
   display: inline-block;
+  font-family: var(--font-board);
+  font-size: var(--text-m);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
@@ -452,93 +730,198 @@ legend {
 }
 
 .value.revealed {
-  color: var(--accent);
-  animation: pop 0.45s ease-out;
+  color: var(--accent-ink);
+  animation: flip-in var(--slow) var(--ease);
 }
 
 .sum {
+  font-family: var(--font-board);
+  font-size: var(--text-l);
   font-variant-numeric: tabular-nums;
 }
 
-@keyframes pop {
-  0% {
-    transform: scale(0.4);
-    opacity: 0;
-  }
-  70% {
-    transform: scale(1.25);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-  }
+/* ---------- Auflösung ---------- */
+.reveal-card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4) var(--space-5);
+  margin-top: var(--space-2);
+  text-align: center;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .value.revealed {
-    animation: none;
-  }
+.reveal-pick {
+  font-size: var(--text-l);
+  font-weight: 600;
+}
+
+.reveal-value {
+  font-size: 5rem;
+  min-height: 1em;
+  margin: var(--space-2) 0;
+}
+
+.reveal-value.counting {
+  animation: flip-in var(--slow) var(--ease);
+}
+
+.scoreboard {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.score-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.score-name {
+  font-weight: 600;
+}
+
+.score-line .digits {
+  font-size: var(--text-xl);
+}
+
+/* Balken bis zum Ziel; die Linie markiert die Zielzahl */
+.bar {
+  position: relative;
+  height: 8px;
+  margin: var(--space-2) 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  background: oklch(1 0 0 / 0.1);
+}
+
+.bar-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--board-digit);
+  transform-origin: left;
+  transition: transform var(--slow) var(--ease);
+}
+
+.bar-target {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--board-fg);
+}
+
+.scoreboard li.bust .digits,
+.scoreboard li.bust .board-hint {
+  color: var(--board-bust);
+}
+
+.scoreboard li.bust .bar-fill {
+  background: var(--board-bust);
 }
 
 /* Ergebnis */
 section.outcome {
-  margin-top: 1rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem;
+  margin-bottom: var(--space-5);
+}
+
+.standings {
+  border-top: 1px solid var(--line);
 }
 
 .standings li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.standings li.winner .name {
-  color: var(--accent);
-  font-weight: 700;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .standing-line {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.standing-line .rank {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: var(--radius-s);
+  background: var(--board-bg);
+  font-size: var(--text-l);
 }
 
 .standing-line .name {
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-l);
+  font-weight: 500;
 }
 
 .standing-line .total {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xl);
+  color: var(--fg);
 }
 
-.perfect {
-  margin-top: 0.2rem;
-  padding-left: 1.5rem;
+.standings li.winner .name,
+.standings li.winner .total {
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.standing-meta {
+  margin-top: var(--space-1);
+  padding-left: calc(32px + var(--space-3));
 }
 
 footer {
-  margin-top: 2rem;
+  margin-top: var(--space-7);
   text-align: center;
 }
 
 /* Fehlermeldung mit Erklärung und Ausweg */
 .error-box {
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-2);
   justify-items: start;
-  margin: 1rem 0;
+  margin: var(--space-4) 0;
 }
 
 .error-box p {
   margin: 0;
 }
 
-/* Pokal-Symbol beim Sieger (statt Emoji) */
-.trophy {
-  color: var(--accent);
-  margin-left: 0.35rem;
-  vertical-align: -0.2em;
+@keyframes flip-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .groups {
+    grid-template-columns: 1fr;
+  }
+
+  .reveal-value {
+    font-size: 4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

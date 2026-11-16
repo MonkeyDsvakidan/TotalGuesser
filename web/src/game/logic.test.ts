@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { RosterPlayer } from '../lib/types'
 import {
   computeTarget,
+  formatValue,
   currentTurn,
   percentile,
   normalize,
@@ -15,6 +16,7 @@ import {
   turnOrder,
 } from './logic'
 import type { Game, Pick } from './types'
+import { teamLabel } from '../lib/data'
 
 function player(id: string, name: string, values: Record<string, number> = {}, aliases: string[] = []): RosterPlayer {
   return { id, name, search: normalize(name), aliases, active: false, first: 2000, last: 2005, values }
@@ -199,5 +201,22 @@ describe('perfectLastPick', () => {
     const g = game([[pick(0, 20), pick(1, 1)], [pick(1, 1), pick(0, 1)]], { target: 50 })
     expect(perfectLastPick(g, 0, roster)?.value).toBe(31)
     expect(perfectLastPick({ ...g, settings: { ...g.settings, rule: 'bust' } }, 0, roster)?.value).toBe(25)
+  })
+})
+
+describe('Anzeige', () => {
+  it('formatiert Zahlen einheitlich mit Apostroph', () => {
+    expect(formatValue(63000)).toBe("63'000")
+    expect(formatValue(1200)).toBe("1'200")
+    expect(formatValue(1234567.25)).toBe("1'234'567.3")
+    expect(formatValue(7.5)).toBe('7.5')
+    expect(formatValue(999)).toBe('999')
+  })
+
+  it('zeigt Teamnamen statt NBA-Kürzel', () => {
+    const team = { id: 'x', name: 'Boston Celtics', short_name: 'BOS', logo_url: null, active: true, player_count: 1 }
+    expect(teamLabel(team)).toBe('Boston Celtics')
+    expect(teamLabel({ ...team, name: '1. FC Heidenheim', short_name: 'Heidenheim' })).toBe('Heidenheim')
+    expect(teamLabel({ ...team, short_name: null })).toBe('Boston Celtics')
   })
 })

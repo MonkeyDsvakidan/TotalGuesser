@@ -192,6 +192,7 @@ export function perfectLastPick(
   return best
 }
 
+// Überall gleiches Format: 63'000 und 7.5. Nicht über 'de-CH', weil Browser dort mal ' und mal ’ setzen
 export function formatValue(value: number): string {
-  return value.toLocaleString('de-CH', { maximumFractionDigits: 1 })
+  return value.toLocaleString('en-US', { maximumFractionDigits: 1 }).replace(/,/g, "'")
 }
