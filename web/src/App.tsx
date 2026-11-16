@@ -133,7 +133,9 @@ export default function App() {
   if (!meta && metaErrors[sport.id] && (allSettled || game)) {
     return (
       <main className="app">
-        <h1>TotalGuesser</h1>
+        <h1 className="logo">
+          Total<span>Guesser</span>
+        </h1>
         <div className="error-box" role="alert">
           <p className="error">Die Spieldaten konnten nicht geladen werden.</p>
           <p className="muted small">Prüfe die Internetverbindung und lade die Seite neu. Hilft das nicht, fehlen die Daten für diese Sportart (<code>scripts/{sport.importScript}</code> ausführen).</p>
@@ -147,7 +149,9 @@ export default function App() {
   if (!meta) {
     return (
       <main className="app">
-        <h1>TotalGuesser</h1>
+        <h1 className="logo">
+          Total<span>Guesser</span>
+        </h1>
         <p className="muted">Lade Daten …</p>
       </main>
     )
@@ -158,11 +162,13 @@ export default function App() {
   return (
     <main className="app">
       <header className="top">
-        <h1>TotalGuesser</h1>
+        <h1 className="logo">
+          Total<span>Guesser</span>
+        </h1>
         {game && game.phase !== 'target' && (
-          <div className="target" aria-label="Zielzahl">
-            <span className="muted small">Ziel</span>
-            <strong>{formatValue(game.target)}</strong>
+          <div className="target board" aria-label="Zielzahl">
+            <span className="board-label">Ziel</span>
+            <strong className="digits">{formatValue(game.target)}</strong>
           </div>
         )}
       </header>
@@ -194,7 +200,7 @@ export default function App() {
 
       {!game && (
         <>
-          <p className="lead">Team, Kategorie, Zielzahl – wer nach allen Runden am nächsten dran ist, gewinnt.</p>
+          <p className="lead">Pro Runde ein Team und eine Kategorie. Nennt reihum Spieler – wer mit der Summe am nächsten an der Zielzahl landet, gewinnt.</p>
           <Setup
             sport={sport}
             availableSports={loadedSports}

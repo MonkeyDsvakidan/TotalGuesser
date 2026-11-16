@@ -3,6 +3,7 @@ import type { Game } from '../game/types'
 import type { Category, RosterPlayer, Team } from '../lib/types'
 import PicksTable from './PicksTable'
 import PlayerSearch from './PlayerSearch'
+import Icon from './Icon'
 import RoundHeader from './RoundHeader'
 
 interface Props {
@@ -24,10 +25,8 @@ export default function Play({ game, teams, categories, rosters, rosterNote, onP
     <div className="play">
       {turn ? (
         <section className="turn">
-          <div className="muted small">
-            Runde {turn.round + 1} von {game.rounds.length}
-          </div>
           <RoundHeader
+            label={`Runde ${turn.round + 1} von ${game.rounds.length}`}
             team={teams.get(game.rounds[turn.round].teamId)!}
             category={categories.get(game.rounds[turn.round].categoryKey)!}
           />
@@ -44,6 +43,7 @@ export default function Play({ game, teams, categories, rosters, rosterNote, onP
             </button>
             {anyPick && (
               <button type="button" className="secondary" onClick={onUndo}>
+                <Icon name="undo" />
                 Rückgängig
               </button>
             )}
@@ -58,6 +58,7 @@ export default function Play({ game, teams, categories, rosters, rosterNote, onP
               Auflösung starten
             </button>
             <button type="button" className="secondary" onClick={onUndo}>
+              <Icon name="undo" />
               Rückgängig
             </button>
           </div>

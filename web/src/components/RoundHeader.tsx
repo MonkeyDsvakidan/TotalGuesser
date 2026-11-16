@@ -1,8 +1,10 @@
+import { teamLabel } from '../lib/data'
 import type { Category, Team } from '../lib/types'
 
 interface Props {
   team: Team
   category: Category
+  label: string // z. B. «Runde 2 von 5»
 }
 
 function scopeHint(category: Category, team: Team): string {
@@ -13,15 +15,15 @@ function scopeHint(category: Category, team: Team): string {
         ? 'Bestes Einzelspiel der Karriere – zählt über alle Teams'
         : 'Karrierewert – zählt über alle Teams'
     case 'team':
-      return `Zählt nur die Zeit bei ${team.short_name ?? team.name}`
+      return `Zählt nur die Zeit bei ${teamLabel(team)}`
     case 'team_best_season':
-      return `Beste Einzelsaison bei ${team.short_name ?? team.name}`
+      return `Beste Einzelsaison bei ${teamLabel(team)}`
   }
 }
 
-export default function RoundHeader({ team, category }: Props) {
+export default function RoundHeader({ team, category, label }: Props) {
   return (
-    <div className="round-header">
+    <div className="round-header board">
       {team.logo_url && (
         <img
           key={team.id}
@@ -33,9 +35,10 @@ export default function RoundHeader({ team, category }: Props) {
         />
       )}
       <div>
+        <div className="board-label">{label}</div>
         <div className="team-name">{team.name}</div>
         <div className="category">{category.label}</div>
-        <div className="muted small">{scopeHint(category, team)}</div>
+        <div className="board-hint">{scopeHint(category, team)}</div>
       </div>
     </div>
   )

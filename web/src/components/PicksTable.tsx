@@ -1,5 +1,6 @@
 import { formatValue, revealOrder, totals } from '../game/logic'
 import type { Game } from '../game/types'
+import { teamLabel } from '../lib/data'
 import type { Team } from '../lib/types'
 
 interface Props {
@@ -32,8 +33,8 @@ export default function PicksTable({ game, teams, revealed }: Props) {
           {game.rounds.map((round, r) => (
             <tr key={r}>
               <th scope="row">
-                {r + 1}
-                <span className="muted small"> {teams.get(round.teamId)?.short_name}</span>
+                <span className="round-no">{r + 1}</span>
+                <span className="round-team">{teams.get(round.teamId) ? teamLabel(teams.get(round.teamId)!) : ''}</span>
               </th>
               {players.map((_, playerIndex) => {
                 const pick = game.picks[r].find((p) => p.playerIndex === playerIndex)

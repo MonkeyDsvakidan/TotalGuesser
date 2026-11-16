@@ -97,11 +97,11 @@ Seite in Safari öffnen → Teilen-Knopf → **Zum Home-Bildschirm**. Das Spiel 
 
 ## Spielablauf (Modus 1)
 
-1. **Setup:** Sportart (NBA oder Fussball), 2–6 Spieler, 3/5/7/10 Runden, Regel «Nur Nähe zählt» oder «Drüber = verloren». Kategorien sind getrennt in **Einzelnes Spiel** (Career Highs) und **Karriere & mehrere Spiele**; innerhalb der Gruppe fest oder pro Runde neu.
+1. **Setup in 3 Schritten:** Sportart (NBA oder Fussball), 2–6 Spieler, Kategorie-Art (**Einzelnes Spiel** = Career Highs oder **Karriere & mehrere Spiele**). Unter «Mehr Optionen»: 3/5/7/10 Runden, Kategorie fest oder pro Runde neu, Regel «Nur Nähe zählt» oder «Drüber = verloren».
 2. **Zielzahl:** Vor der ersten Runde wird der Vorschlag angezeigt; er lässt sich mit −/+ oder per Eingabe anpassen oder neu würfeln. Nach «Start» ist das Ziel fix.
 3. **Runden:** Pro Runde ein zufälliges aktives Team; Teams wiederholen sich erst, wenn alle dran waren. Wer in Runde 1 beginnt, ist zufällig; danach rotiert die Reihenfolge jede Runde.
 4. **Eingabe:** Suche nach Wortanfängen und Spitznamen, nur Spieler des Rundenteams. Bereits genannte Spieler sind ausgegraut. Passen zählt 0, «Rückgängig» nimmt den letzten Pick zurück.
-5. **Auflösung:** Werte einzeln oder alle aufdecken, danach Rangliste, Abstand zum Ziel und der perfekte letzte Pick.
+5. **Auflösung:** Werte einzeln aufdecken (die Zahl zählt hoch, die Tafel zeigt Zwischenstand und Abstand zum Ziel) oder alle auf einmal, danach Rangliste, Abstand zum Ziel und der perfekte letzte Pick.
 6. **Bilanz:** Siege pro Spielername werden im Browser gespeichert. Ein laufendes Spiel übersteht auch ein Neuladen der Seite.
 
 ## Stand

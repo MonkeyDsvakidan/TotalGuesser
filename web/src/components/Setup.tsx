@@ -3,6 +3,7 @@ import type { Category, CategoryGroup, Scope } from '../lib/types'
 import type { Settings } from '../game/types'
 import type { PlayerRecord } from '../game/storage'
 import { SPORTS, type Sport } from '../lib/sports'
+import Icon from './Icon'
 
 const MIN_PLAYERS = 2
 const MAX_PLAYERS = 6
@@ -54,6 +55,13 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
   const setName = (index: number, name: string) =>
     update({ players: settings.players.map((p, i) => (i === index ? name : p)) })
 
+  const groupTitle = GROUPS.find((g) => g.id === settings.categoryGroup)?.title
+  const categoryText =
+    settings.categoryMode === 'mixed'
+      ? 'Kategorie jede Runde neu'
+      : (groupCategories.find((c) => c.key === selectedKey)?.label ?? 'Kategorie zufällig')
+  const summary = `${settings.rounds} Runden · ${categoryText} · ${settings.rule === 'bust' ? 'Drüber = verloren' : 'Nur Nähe zählt'}`
+
   const knownPlayers = Object.entries(stats).filter(([, r]) => r.games > 0)
 
   return (
@@ -64,8 +72,10 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
         if (valid) onStart({ ...settings, categoryKey: selectedKey, players: names })
       }}
     >
-      <fieldset>
-        <legend>Sportart</legend>
+      <fieldset className="step">
+        <legend>
+          <span className="step-no">1</span>Sportart
+        </legend>
         <div className="segmented">
           {SPORTS.map((s) => {
             const available = availableSports.has(s.id)
@@ -85,52 +95,47 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
         </div>
       </fieldset>
 
-      <fieldset>
-        <legend>Spieler</legend>
-        {settings.players.map((name, i) => (
-          <div className="row" key={i}>
-            <input
-              value={name}
-              onChange={(e) => setName(i, e.target.value)}
-              placeholder={`Spieler ${i + 1}`}
-              aria-label={`Spieler ${i + 1}`}
-              maxLength={20}
-            />
-            {settings.players.length > MIN_PLAYERS && (
-              <button
-                type="button"
-                className="icon"
-                aria-label={`Spieler ${i + 1} entfernen`}
-                onClick={() => update({ players: settings.players.filter((_, j) => j !== i) })}
-              >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
-        {settings.players.length < MAX_PLAYERS && (
-          <button type="button" className="secondary" onClick={() => update({ players: [...settings.players, ''] })}>
-            + Spieler
-          </button>
-        )}
-        {duplicate && <p className="error">Jeder Name nur einmal.</p>}
-      </fieldset>
-
-      <fieldset>
-        <legend>Runden</legend>
-        <div className="segmented">
-          {[3, 5, 7, 10].map((n) => (
-            <label key={n} className={settings.rounds === n ? 'on' : ''}>
-              <input type="radio" name="rounds" checked={settings.rounds === n} onChange={() => update({ rounds: n })} />
-              {n}
-            </label>
+      <fieldset className="step">
+        <legend>
+          <span className="step-no">2</span>Spieler
+        </legend>
+        <div className="players">
+          {settings.players.map((name, i) => (
+            <div className="row" key={i}>
+              <input
+                value={name}
+                onChange={(e) => setName(i, e.target.value)}
+                placeholder={`Spieler ${i + 1}`}
+                aria-label={`Spieler ${i + 1}`}
+                maxLength={20}
+              />
+              {settings.players.length > MIN_PLAYERS && (
+                <button
+                  type="button"
+                  className="icon"
+                  aria-label={`Spieler ${i + 1} entfernen`}
+                  onClick={() => update({ players: settings.players.filter((_, j) => j !== i) })}
+                >
+                  <Icon name="x" />
+                </button>
+              )}
+            </div>
           ))}
         </div>
+        {settings.players.length < MAX_PLAYERS && (
+          <button type="button" className="secondary add" onClick={() => update({ players: [...settings.players, ''] })}>
+            <Icon name="plus" />
+            Spieler
+          </button>
+        )}
+        {duplicate && <p className="error small">Jeder Name nur einmal.</p>}
       </fieldset>
 
-      <fieldset>
-        <legend>Kategorie</legend>
-        <div className="groups" role="radiogroup" aria-label="Art der Kategorie">
+      <fieldset className="step">
+        <legend>
+          <span className="step-no">3</span>Kategorie
+        </legend>
+        <div className="groups">
           {GROUPS.map((g) => {
             const available = categories.some((c) => c.group === g.id)
             return (
@@ -148,65 +153,89 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
             )
           })}
         </div>
+      </fieldset>
 
-        <div className="segmented">
-          <label className={settings.categoryMode === 'fixed' ? 'on' : ''}>
-            <input type="radio" name="mode" checked={settings.categoryMode === 'fixed'} onChange={() => update({ categoryMode: 'fixed' })} />
-            Fest für alle Runden
-          </label>
-          <label className={settings.categoryMode === 'mixed' ? 'on' : ''}>
-            <input type="radio" name="mode" checked={settings.categoryMode === 'mixed'} onChange={() => update({ categoryMode: 'mixed' })} />
-            Jede Runde neu
-          </label>
-        </div>
+      <details className="more">
+        <summary>
+          <span className="more-title">
+            Mehr Optionen
+            <Icon name="chevron" />
+          </span>
+          <span className="muted small">{summary}</span>
+        </summary>
 
-        {settings.categoryMode === 'fixed' && (
-          <div className="category-list" role="radiogroup" aria-label="Kategorie">
-            <div className="chips">
-              <label className={selectedKey === null ? 'on' : ''}>
-                <input type="radio" name="category" checked={selectedKey === null} onChange={() => update({ categoryKey: null })} />
-                Zufällig
+        <fieldset>
+          <legend>Runden</legend>
+          <div className="segmented">
+            {[3, 5, 7, 10].map((n) => (
+              <label key={n} className={settings.rounds === n ? 'on' : ''}>
+                <input type="radio" name="rounds" checked={settings.rounds === n} onChange={() => update({ rounds: n })} />
+                {n}
               </label>
-            </div>
-            {scopes.map((scope) => (
-              <div key={scope}>
-                {scopes.length > 1 && <div className="scope-title muted small">{SCOPE_TITLES[scope]}</div>}
-                <div className="chips">
-                  {groupCategories
-                    .filter((c) => c.scope === scope)
-                    .map((c) => (
-                      <label key={c.key} className={selectedKey === c.key ? 'on' : ''}>
-                        <input type="radio" name="category" checked={selectedKey === c.key} onChange={() => update({ categoryKey: c.key })} />
-                        {c.label}
-                      </label>
-                    ))}
-                </div>
-              </div>
             ))}
           </div>
-        )}
-        {settings.categoryMode === 'mixed' && (
-          <p className="muted small">Jede Runde eine zufällige Kategorie aus «{GROUPS.find((g) => g.id === settings.categoryGroup)?.title}».</p>
-        )}
-      </fieldset>
+        </fieldset>
 
-      <fieldset>
-        <legend>Regel</legend>
-        <div className="segmented">
-          <label className={settings.rule === 'closest' ? 'on' : ''}>
-            <input type="radio" name="rule" checked={settings.rule === 'closest'} onChange={() => update({ rule: 'closest' })} />
-            Nur Nähe zählt
-          </label>
-          <label className={settings.rule === 'bust' ? 'on' : ''}>
-            <input type="radio" name="rule" checked={settings.rule === 'bust'} onChange={() => update({ rule: 'bust' })} />
-            Drüber = verloren
-          </label>
-        </div>
-      </fieldset>
+        <fieldset>
+          <legend>Kategorie aus «{groupTitle}»</legend>
+          <div className="segmented">
+            <label className={settings.categoryMode === 'fixed' ? 'on' : ''}>
+              <input type="radio" name="mode" checked={settings.categoryMode === 'fixed'} onChange={() => update({ categoryMode: 'fixed' })} />
+              Fest für alle Runden
+            </label>
+            <label className={settings.categoryMode === 'mixed' ? 'on' : ''}>
+              <input type="radio" name="mode" checked={settings.categoryMode === 'mixed'} onChange={() => update({ categoryMode: 'mixed' })} />
+              Jede Runde neu
+            </label>
+          </div>
 
-      <button type="submit" className="primary" disabled={!valid || starting}>
+          {settings.categoryMode === 'fixed' && (
+            <div className="category-list" role="radiogroup" aria-label="Kategorie">
+              <div className="chips">
+                <label className={selectedKey === null ? 'on' : ''}>
+                  <input type="radio" name="category" checked={selectedKey === null} onChange={() => update({ categoryKey: null })} />
+                  Zufällig
+                </label>
+              </div>
+              {scopes.map((scope) => (
+                <div key={scope}>
+                  {scopes.length > 1 && <div className="scope-title muted small">{SCOPE_TITLES[scope]}</div>}
+                  <div className="chips">
+                    {groupCategories
+                      .filter((c) => c.scope === scope)
+                      .map((c) => (
+                        <label key={c.key} className={selectedKey === c.key ? 'on' : ''}>
+                          <input type="radio" name="category" checked={selectedKey === c.key} onChange={() => update({ categoryKey: c.key })} />
+                          {c.label}
+                        </label>
+                      ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {settings.categoryMode === 'mixed' && <p className="muted small">Jede Runde eine zufällige Kategorie aus «{groupTitle}».</p>}
+        </fieldset>
+
+        <fieldset>
+          <legend>Regel</legend>
+          <div className="segmented">
+            <label className={settings.rule === 'closest' ? 'on' : ''}>
+              <input type="radio" name="rule" checked={settings.rule === 'closest'} onChange={() => update({ rule: 'closest' })} />
+              Nur Nähe zählt
+            </label>
+            <label className={settings.rule === 'bust' ? 'on' : ''}>
+              <input type="radio" name="rule" checked={settings.rule === 'bust'} onChange={() => update({ rule: 'bust' })} />
+              Drüber = verloren
+            </label>
+          </div>
+        </fieldset>
+      </details>
+
+      <button type="submit" className="primary big" disabled={!valid || starting}>
         {starting ? 'Lade Teams …' : 'Spiel starten'}
       </button>
+      {!valid && !duplicate && <p className="muted small hint">Alle Spielernamen eintragen, dann geht es los.</p>}
 
       {knownPlayers.length > 0 && (
         <section className="stats">
@@ -217,7 +246,7 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
               .map(([name, r]) => (
                 <li key={name}>
                   <span>{name}</span>
-                  <span className="muted">
+                  <span className="muted num">
                     {r.wins} {r.wins === 1 ? 'Sieg' : 'Siege'} aus {r.games}
                   </span>
                 </li>
