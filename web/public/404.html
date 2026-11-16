@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f6f4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141413" media="(prefers-color-scheme: dark)" />
+    <!-- GitHub Pages zeigt diese Seite unter jeder falschen Adresse, darum absolute Pfade -->
+    <link rel="icon" type="image/png" href="/TotalGuesser/icon-192.png" />
+    <link rel="apple-touch-icon" href="/TotalGuesser/apple-touch-icon.png" />
+    <title>Seite nicht gefunden – TotalGuesser</title>
+    <style>
+      /* Gleiche Werte wie oben in src/index.css */
+      @font-face {
+        font-family: 'Barlow Condensed';
+        font-weight: 600;
+        font-display: swap;
+        src: url('/TotalGuesser/fonts/barlow-condensed-latin-600-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow';
+        font-weight: 400;
+        font-display: swap;
+        src: url('/TotalGuesser/fonts/barlow-latin-400-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Barlow';
+        font-weight: 600;
+        font-display: swap;
+        src: url('/TotalGuesser/fonts/barlow-latin-600-normal.woff2') format('woff2');
+      }
+      :root {
+        --font-board: 'Barlow Condensed', system-ui, sans-serif;
+        --bg: oklch(0.97 0.003 90);
+        --fg: oklch(0.21 0.006 90);
+        --fg-2: oklch(0.4 0.006 90);
+        --accent: oklch(0.52 0.16 42);
+        --accent-fg: oklch(1 0 0);
+        --accent-ink: oklch(0.5 0.16 42);
+        --board-bg: oklch(0.21 0.006 90);
+        --board-line: oklch(1 0 0 / 0.1);
+        --board-muted: oklch(0.74 0.006 90);
+        --board-digit: oklch(0.84 0.15 78);
+        --radius-s: 8px;
+        --radius-m: 14px;
+        color-scheme: light;
+        font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        line-height: 1.45;
+        color: var(--fg);
+        background: var(--bg);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: oklch(0.17 0.004 90);
+          --fg: oklch(0.94 0.003 90);
+          --fg-2: oklch(0.8 0.004 90);
+          --accent: oklch(0.78 0.15 68);
+          --accent-fg: oklch(0.2 0.01 60);
+          --accent-ink: oklch(0.8 0.14 70);
+          --board-bg: oklch(0.12 0.004 90);
+          color-scheme: dark;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background: var(--bg);
+        display: grid;
+        place-items: center;
+        padding: max(16px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+      }
+      main {
+        width: 100%;
+        max-width: 26rem;
+        display: grid;
+        gap: 24px;
+      }
+      .logo {
+        font-family: var(--font-board);
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0;
+      }
+      .logo span {
+        color: var(--accent-ink);
+      }
+      .board {
+        background: var(--board-bg);
+        border: 1px solid var(--board-line);
+        border-radius: var(--radius-m);
+        padding: 32px 16px 24px;
+        text-align: center;
+      }
+      .board-label {
+        color: var(--board-muted);
+        font-size: 0.875rem;
+        font-weight: 400;
+      }
+      .digits {
+        font-family: var(--font-board);
+        font-weight: 600;
+        font-size: 5rem;
+        line-height: 1;
+        margin: 8px 0;
+        color: var(--board-digit);
+        font-variant-numeric: tabular-nums;
+      }
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 8px;
+      }
+      p {
+        margin: 0;
+        color: var(--fg-2);
+      }
+      a.button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        padding: 12px 24px;
+        border-radius: var(--radius-s);
+        background: var(--accent);
+        color: var(--accent-fg);
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-decoration: none;
+        justify-self: start;
+      }
+      a.button:hover {
+        filter: brightness(1.06);
+      }
+      a:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 class="logo">Total<span>Guesser</span></h1>
+      <div class="board" aria-hidden="true">
+        <div class="board-label">Ziel verfehlt</div>
+        <div class="digits">404</div>
+      </div>
+      <div>
+        <h2>Diese Seite gibt es nicht</h2>
+        <p>Die Adresse ist falsch oder veraltet. Das Spiel selbst läuft weiter – ein gespeichertes Spiel ist noch da.</p>
+      </div>
+      <a class="button" href="/TotalGuesser/">Zum Spiel</a>
+    </main>
+  </body>
+</html>
