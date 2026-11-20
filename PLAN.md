@@ -166,6 +166,17 @@ Ein Python-Skript im Ordner `/scripts` holt die Daten und lädt sie per Supabase
 7. Fussball-Daten.
 8. Online-Multiplayer.
 
+---
+
+## 7. Offene Entscheidungen
+
+- Zählen Playoff-Werte mit oder nur Regular Season? (Vorschlag: nur Regular Season, wie die üblichen Career-High-Angaben.)
+- Darf ein Team mehrmals in einem Spiel vorkommen?
+- Franchise-Umzüge: zusammenfassen oder getrennt?
+- Soll man im Fussball auch Nationalteams spielen können?
+
+---
+
 ## 8. GameMaster: Teil einer gemeinsamen Spiel-App (Entscheid 20.11.2026)
 
 TotalGuesser wird Teil von **«GameMaster»** zusammen mit Music Battle (Music 1v1, Musik-Quiz, Aufräum-Tools). Das Repo bleibt eigenständig; dazu kommen eine gemeinsame Leiste unten und ein neuer, zu Music Battle passender Look. Planung und Vorlage im Repo MusicBattle: `ROADMAP.md` Phase 8, `design/gamemaster-muster.html`.
@@ -179,12 +190,3 @@ Aufgaben (Reihenfolge):
 1. Neue Farb-/Schrift-Werte in `web/src/index.css` (Bungee selbst gehostet über `@fontsource/bungee`), Hellmodus entfernen, alle Bildschirme bei 375 px und 1280 px prüfen, Kontrast messen.
 2. Leiste unten als Komponente (Links zu Music Battle bzw. Startseite), Platz für Safe Area; mitten im Spiel bleibt der Spielstand im `localStorage` erhalten.
 3. Manifest und Icons an die gemeinsame App anpassen (nach Schritt 8.2 im Repo MusicBattle).
-
----
-
-## 7. Offene Entscheidungen
-
-- Zählen Playoff-Werte mit oder nur Regular Season? (Vorschlag: nur Regular Season, wie die üblichen Career-High-Angaben.)
-- Darf ein Team mehrmals in einem Spiel vorkommen?
-- Franchise-Umzüge: zusammenfassen oder getrennt?
-- Soll man im Fussball auch Nationalteams spielen können?
