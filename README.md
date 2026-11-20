@@ -95,7 +95,7 @@ Einmalig nötig: im Repo unter **Settings → Pages → Build and deployment →
 
 ### 5. Auf dem iPhone-Home-Bildschirm
 
-Seite in Safari öffnen → Teilen-Knopf → **Zum Home-Bildschirm**. Das Spiel startet dann wie eine App ohne Safari-Leisten (Manifest und Icons in `web/public/`). Die Icons erzeugt `python scripts/make_icons.py` (braucht Pillow).
+Seite in Safari öffnen → Teilen-Knopf → **Zum Home-Bildschirm**. Installiert wird die gemeinsame App **GameMaster** (Manifest, Symbol und Name kommen aus dem Repo `monkeydsvakidan.github.io`); sie startet auf der Übersicht, TotalGuesser ist dort und in der Leiste unten erreichbar.
 
 ## Spielablauf (Modus 1)
 
