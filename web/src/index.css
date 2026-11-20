@@ -56,6 +56,12 @@
   --board-digit: #ffb347;
   --board-bust: oklch(0.72 0.16 28);
 
+  /* GameMaster-Leiste unten: neutral wie in Music Battle, TotalGuesser aktiv in Orange */
+  --bar-bg: #151419;
+  --bar-line: rgb(255 255 255 / 0.08);
+  --bar-idle: #8f8a99;
+  --bar-h: calc(58px + env(safe-area-inset-bottom));
+
   color-scheme: dark;
   font-family: var(--font-ui);
   font-size: var(--text-m);
@@ -79,7 +85,7 @@ body {
   margin: 0 auto;
   /* safe-area: Notch und Home-Leiste, wenn die Seite vom Home-Bildschirm aus startet */
   padding: env(safe-area-inset-top) max(var(--space-4), env(safe-area-inset-right))
-    calc(var(--space-6) + env(safe-area-inset-bottom)) max(var(--space-4), env(safe-area-inset-left));
+    calc(var(--space-6) + var(--bar-h)) max(var(--space-4), env(safe-area-inset-left));
 }
 
 .app:has(> .top) {
@@ -917,4 +923,94 @@ footer {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---------- GameMaster: Maske oben links, Leiste unten ---------- */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.gm-home {
+  display: block;
+  flex: none;
+  border-radius: var(--radius-s);
+}
+
+.gm-home img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-s);
+}
+
+.gm-home:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.gmbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--bar-bg);
+  border-top: 1px solid var(--bar-line);
+  padding: var(--space-1) max(var(--space-1), env(safe-area-inset-right)) env(safe-area-inset-bottom)
+    max(var(--space-1), env(safe-area-inset-left));
+}
+
+.gmbar a {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 0 2px;
+  color: var(--bar-idle);
+  text-decoration: none;
+  font: 600 11px/1.2 var(--font-ui);
+  text-align: center;
+}
+
+.gmbar svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gmbar a:hover {
+  color: var(--fg);
+}
+
+.gmbar a[aria-current] {
+  color: var(--accent);
+}
+
+.gmbar a[aria-current]::before {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--space-1) - 1px);
+  left: 50%;
+  width: 28px;
+  height: 3px;
+  margin-left: -14px;
+  border-radius: 0 0 3px 3px;
+  background: var(--accent);
+}
+
+.gmbar a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+  border-radius: var(--radius-s);
 }
