@@ -1,0 +1,2 @@
+# Windows-Startdatei braucht CRLF-Zeilenenden, unverändert speichern
+*.bat -text
