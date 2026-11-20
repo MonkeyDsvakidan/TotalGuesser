@@ -9,10 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="TotalGuesser" />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="icon" type="image/png" href="icon-192.png" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <!-- Home-Bildschirm (GameMaster): installiert die gemeinsame App der Domain-Wurzel (Repo monkeydsvakidan.github.io).
+         Die alten Dateien in public/ (manifest, Icons) bleiben nur für bereits installierte TotalGuesser-Apps. -->
+    <meta name="apple-mobile-web-app-title" content="GameMaster" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <!-- volle Adresse: sonst ersetzt Vite den Pfad durch die alte public/manifest.webmanifest -->
+    <link rel="manifest" href="https://monkeydsvakidan.github.io/manifest.webmanifest" />
     <title>TotalGuesser</title>
   </head>
   <body>
