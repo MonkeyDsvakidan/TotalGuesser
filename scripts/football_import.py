@@ -18,7 +18,7 @@ Ausgabe (Standard: web/public/data/football/):
 Beispiele:
     python football_import.py                  # Daten laden (falls nötig) und exportieren
     python football_import.py --refresh        # neue Version des Datensatzes laden
-    python football_import.py --min-games 50   # Untergrenze ändern (Standard 30 Einsätze)
+    python football_import.py --min-games 50   # Untergrenze ändern (Standard 15 Einsätze)
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ LOGO_URL = "https://tmssl.akamaized.net/images/wappen/head/{club_id}.png"
 # Bundesliga, Premier League, LaLiga, Serie A, Ligue 1
 LEAGUES = ("L1", "GB1", "ES1", "IT1", "FR1")
 # Untergrenze fürs Niveau: wer weniger erfasste Einsätze hat, kommt nicht ins Spiel
-DEFAULT_MIN_GAMES = 30
+DEFAULT_MIN_GAMES = 15
 
 COVERAGE_HINT = "Alle erfassten Spiele seit 2012/13 (Liga, Pokal, Europapokal) – zählt über alle Vereine"
 
@@ -191,7 +191,9 @@ def download(refresh: bool) -> None:
             continue
         print(f"Lade {table}.csv.gz …")
         tmp = target.with_suffix(".part")
-        with urllib.request.urlopen(f"{SOURCE_URL}/{table}.csv.gz", timeout=120) as res, tmp.open("wb") as out:
+        # Der Server lehnt das Standard-Kennzeichen von Python ab (Cloudflare-Fehler 1010)
+        req = urllib.request.Request(f"{SOURCE_URL}/{table}.csv.gz", headers={"User-Agent": "totalguesser-import/1.0"})
+        with urllib.request.urlopen(req, timeout=120) as res, tmp.open("wb") as out:
             shutil.copyfileobj(res, out)
         tmp.replace(target)
 

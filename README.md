@@ -34,6 +34,8 @@ Das Frontend lädt pro Runde nur die Datei des Rundenteams. Ein Spieler ohne Wer
 
 Läuft nur auf einem normalen PC: stats.nba.com blockiert Cloud-Server, auch GitHub Actions (getestet). Ein automatisches Update über GitHub ist deshalb nicht möglich.
 
+**Windows ohne Git:** Schritt-für-Schritt in [`scripts/NBA-WINDOWS.md`](scripts/NBA-WINDOWS.md) (Doppelklick auf `scripts/nba_windows.bat`).
+
 ```bash
 cd scripts
 python -m venv .venv && source .venv/bin/activate
@@ -64,7 +66,7 @@ Quelle ist der öffentliche Transfermarkt-Datensatz [dcaribou/transfermarkt-data
 cd scripts
 python football_import.py                  # CSV-Dateien laden (~55 MB, einmalig) und exportieren
 python football_import.py --refresh        # neue Version des Datensatzes laden
-python football_import.py --min-games 50   # Untergrenze ändern (Standard 30 erfasste Einsätze, 0 = alle)
+python football_import.py --min-games 50   # Untergrenze ändern (Standard 15 erfasste Einsätze, 0 = alle)
 ```
 
 Festgelegt im Skript:
