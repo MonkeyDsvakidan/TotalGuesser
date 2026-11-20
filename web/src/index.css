@@ -1,12 +1,15 @@
 /* ============================================================
-   Design-System TotalGuesser – «Anzeigetafel»
-   Ruhige graue Oberfläche; Farbe und Ziffern nur auf der Tafel
-   (Zielzahl, Runde, Spielstand). Tafel ist in hell und dunkel dunkel.
+   Design-System TotalGuesser – «Hallenparkett» (GameMaster, Entscheidung M)
+   Nur dunkel. Warmer dunkler Grund wie Hallenboden bei Nacht, Akzent Orange
+   wie ein Basketball, Tafel-Ziffern Bernstein. Zahlen und Knöpfe in Bungee
+   (wie Music Battle), Titel/Logo Barlow Condensed, Text Barlow.
+   Vorlage: design/gamemaster-muster.html im Repo MusicBattle (Variante A).
    ============================================================ */
 :root {
-  /* Schrift: Barlow für Text, Barlow Condensed für Tafel-Ziffern */
+  /* Schrift: Barlow für Text, Barlow Condensed für Titel/Logo, Bungee für Zahlen und Knöpfe */
   --font-ui: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-board: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+  --font-num: 'Bungee', 'Arial Black', Impact, sans-serif;
   --text-s: 0.875rem;
   --text-m: 1rem;
   --text-l: 1.25rem;
@@ -31,53 +34,34 @@
   --fast: 150ms;
   --slow: 600ms;
 
-  /* Hell */
-  --bg: oklch(0.97 0.003 90);
-  --surface: oklch(1 0 0);
-  --raised: oklch(0.94 0.004 90);
-  --fg: oklch(0.21 0.006 90);
-  --fg-2: oklch(0.4 0.006 90);
-  --muted: oklch(0.5 0.006 90);
-  --line: oklch(0.21 0.006 90 / 0.12);
-  --accent: oklch(0.52 0.16 42);
-  --accent-fg: oklch(1 0 0);
-  --accent-ink: oklch(0.5 0.16 42);
-  --accent-soft: oklch(0.95 0.03 60);
-  --danger: oklch(0.5 0.19 27);
+  /* Flächen und Text (warme Grautöne) */
+  --bg: #17120e;
+  --surface: #231b15;
+  --raised: #2e241c;
+  --fg: #f7efe8;
+  --fg-2: #d9ccc0;
+  --muted: #b9aa9c;
+  --line: rgb(255 236 220 / 0.1);
+  --accent: #ff8a3d;
+  --accent-fg: #1d0f05;
+  --accent-ink: #ff8a3d;
+  --accent-soft: rgb(255 138 61 / 0.14);
+  --danger: oklch(0.72 0.16 25);
 
-  /* Tafel (immer dunkel) */
-  --board-bg: oklch(0.21 0.006 90);
-  --board-fg: oklch(0.96 0.003 90);
-  --board-muted: oklch(0.74 0.006 90);
-  --board-line: oklch(1 0 0 / 0.1);
-  --board-digit: oklch(0.84 0.15 78);
+  /* Tafel */
+  --board-bg: #0f0c09;
+  --board-fg: #f7efe8;
+  --board-muted: #b9aa9c;
+  --board-line: rgb(255 236 220 / 0.1);
+  --board-digit: #ffb347;
   --board-bust: oklch(0.72 0.16 28);
 
-  color-scheme: light;
+  color-scheme: dark;
   font-family: var(--font-ui);
   font-size: var(--text-m);
   line-height: 1.45;
   color: var(--fg);
   background: var(--bg);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: oklch(0.17 0.004 90);
-    --surface: oklch(0.21 0.004 90);
-    --raised: oklch(0.25 0.004 90);
-    --fg: oklch(0.94 0.003 90);
-    --fg-2: oklch(0.8 0.004 90);
-    --muted: oklch(0.7 0.005 90);
-    --line: oklch(1 0 0 / 0.1);
-    --accent: oklch(0.78 0.15 68);
-    --accent-fg: oklch(0.2 0.01 60);
-    --accent-ink: oklch(0.8 0.14 70);
-    --accent-soft: oklch(0.3 0.04 60);
-    --danger: oklch(0.72 0.16 25);
-    --board-bg: oklch(0.12 0.004 90);
-    color-scheme: dark;
-  }
 }
 
 * {
@@ -164,8 +148,8 @@ p {
 }
 
 .digits {
-  font-family: var(--font-board);
-  font-weight: 600;
+  font-family: var(--font-num);
+  font-weight: 400;
   color: var(--board-digit);
   line-height: 1;
 }
@@ -281,10 +265,19 @@ button.primary:not(:disabled):hover {
   filter: brightness(1.06);
 }
 
+/* Knöpfe in Bungee wie in Music Battle (GameMaster); Suchtreffer, Links und Auswahl bleiben in Barlow */
+button.primary,
+button.secondary {
+  font-family: var(--font-num);
+  font-weight: 400;
+  font-size: var(--text-s);
+  letter-spacing: 0.02em;
+}
+
 button.big {
   min-height: 52px;
   padding: var(--space-3) var(--space-5);
-  font-size: var(--text-l);
+  font-size: var(--text-m);
 }
 
 button.icon {
@@ -356,9 +349,9 @@ fieldset.step > legend {
   border-radius: var(--radius-s);
   background: var(--board-bg);
   color: var(--board-digit);
-  font-family: var(--font-board);
-  font-weight: 600;
-  font-size: var(--text-l);
+  font-family: var(--font-num);
+  font-weight: 400;
+  font-size: var(--text-m);
 }
 
 .players {

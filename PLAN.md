@@ -187,6 +187,6 @@ Entscheide des Nutzers:
 - **Leiste unten** mit Music 1v1 · Musik-Quiz · TotalGuesser (Zielscheibe, aktiv in Orange) · Tools.
 
 Aufgaben (Reihenfolge):
-1. Neue Farb-/Schrift-Werte in `web/src/index.css` (Bungee selbst gehostet über `@fontsource/bungee`), Hellmodus entfernen, alle Bildschirme bei 375 px und 1280 px prüfen, Kontrast messen.
+1. ✅ (20.11.2026) Neue Farb-/Schrift-Werte in `web/src/index.css` (Bungee selbst gehostet über `@fontsource/bungee`), Hellmodus entfernen, alle Bildschirme bei 375 px und 1280 px prüfen, Kontrast messen. Bungee für Tafel-Ziffern, Schritt-Nummern und Knöpfe (`primary`/`secondary`); Suchtreffer, Links und Auswahlfelder bleiben Barlow.
 2. Leiste unten als Komponente (Links zu Music Battle bzw. Startseite), Platz für Safe Area; mitten im Spiel bleibt der Spielstand im `localStorage` erhalten.
 3. Manifest und Icons an die gemeinsame App anpassen (nach Schritt 8.2 im Repo MusicBattle).

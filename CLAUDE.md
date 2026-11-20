@@ -4,18 +4,18 @@ Private Spieleseite von Aladin Kermo (für ihn und Freunde): Ratespiel für 2–
 
 - **Technik:** Frontend in `web/` (Vite + React + TypeScript). Keine Datenbank, keine Live-API: Ein Python-Skript in `scripts/` erzeugt vorher statische JSON-Dateien unter `web/public/data/<sport>/`.
 - **Veröffentlichung:** GitHub Pages über `.github/workflows/pages.yml`, Push auf `main` = live. Der Workflow führt `npm ci`, `npm test` und `npm run build` aus.
-- **Testen:** Spiellogik als reine Funktionen mit Vitest (`web/src/game/logic.test.ts`), ausführen in `web/` mit `npm test`. Oberfläche bei 375 px und 1280 px ansehen, hell und dunkel.
+- **Testen:** Spiellogik als reine Funktionen mit Vitest (`web/src/game/logic.test.ts`), ausführen in `web/` mit `npm test`. Oberfläche bei 375 px und 1280 px ansehen (nur dunkel, seit GameMaster).
 - **Spielstand** liegt im `localStorage` – beim Ändern des Formats alte Spielstände weiter lesen können (oder sauber verwerfen).
 - Aladin programmiert nicht selbst: Erklärungen einfach halten, Deutsch (Schweiz, «ss» statt «ß»). Änderungen als Pull Request, ein PR pro Thema.
 
 ## Design-Brief
 
 - **Zielgruppe:** Aladin und Freunde, am Tisch oder auf dem Sofa, meist auf dem Handy.
-- **Stil:** Anzeigetafel in der Halle. Ruhige graue Oberfläche, Farbe nur auf der «Tafel» (dunkle Fläche, auch im Hellmodus): Zielzahl, Runde, Spielstand, aufgedeckter Wert.
-- **Farben:** neutrale Grautöne + eine Akzentfarbe (Glut-Orange, im Dunkelmodus Bernstein); Tafel-Ziffern bernsteinfarben. Alle Werte als Variablen oben in `web/src/index.css`.
-- **Schriften:** Barlow (Text) und Barlow Condensed (Ziffern, Logo), selbst gehostet über `@fontsource`.
+- **Stil:** «Hallenparkett» (GameMaster, Entscheidung M): Anzeigetafel in der Halle bei Nacht. Nur dunkel, warmer dunkler Grund; Farbe vor allem auf der «Tafel» (noch dunklere Fläche): Zielzahl, Runde, Spielstand, aufgedeckter Wert.
+- **Farben:** warme dunkle Grautöne + eine Akzentfarbe Orange `#ff8a3d` (Knöpfe, Auswahl); Tafel-Ziffern Bernstein `#ffb347`. Alle Werte als Variablen oben in `web/src/index.css`.
+- **Schriften:** Barlow (Text), Barlow Condensed (Titel, Logo, Teamname), Bungee (Zahlen auf der Tafel und Knöpfe, wie Music Battle) – alle selbst gehostet über `@fontsource`.
 - **Zahlen:** immer über `formatValue` (63'000, 7.5).
-- **Vorbilder:** Anzeigetafeln in NBA-Hallen und Fussballstadien.
+- **Vorbilder:** Anzeigetafeln in NBA-Hallen und Fussballstadien. Vorlage: `design/gamemaster-muster.html` im Repo MusicBattle (Variante A).
 
 ## Allgemeine Regeln (zusätzlich)
 
