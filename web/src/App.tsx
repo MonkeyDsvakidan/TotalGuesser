@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Play from './components/Play'
 import Reveal from './components/Reveal'
+import GameBar from './components/GameBar'
 import Setup from './components/Setup'
 import TargetSetup from './components/TargetSetup'
 import { computeTarget, currentTurn, formatValue, pickRandom, pickTeams, revealOrder } from './game/logic'
@@ -162,9 +163,15 @@ export default function App() {
   return (
     <main className="app">
       <header className="top">
-        <h1 className="logo">
-          Total<span>Guesser</span>
-        </h1>
+        {/* GameMaster: Maske führt zur Übersicht aller Spiele (wie in Music Battle) */}
+        <div className="brand">
+          <a className="gm-home" href="/" aria-label="Zur Übersicht aller Spiele">
+            <img src="/icon-180.png" alt="" width="40" height="40" />
+          </a>
+          <h1 className="logo">
+            Total<span>Guesser</span>
+          </h1>
+        </div>
         {game && game.phase !== 'target' && (
           <div className="target board" aria-label="Zielzahl">
             <span className="board-label">Ziel</span>
@@ -266,6 +273,7 @@ export default function App() {
       )}
 
       <footer className="muted small">Daten-Stand: {new Date(meta.updated_at).toLocaleDateString('de-CH')}</footer>
+      <GameBar />
     </main>
   )
 }

@@ -188,5 +188,5 @@ Entscheide des Nutzers:
 
 Aufgaben (Reihenfolge):
 1. ✅ (20.11.2026) Neue Farb-/Schrift-Werte in `web/src/index.css` (Bungee selbst gehostet über `@fontsource/bungee`), Hellmodus entfernen, alle Bildschirme bei 375 px und 1280 px prüfen, Kontrast messen. Bungee für Tafel-Ziffern, Schritt-Nummern und Knöpfe (`primary`/`secondary`); Suchtreffer, Links und Auswahlfelder bleiben Barlow.
-2. Leiste unten als Komponente (Links zu Music Battle bzw. Startseite), Platz für Safe Area; mitten im Spiel bleibt der Spielstand im `localStorage` erhalten.
+2. ✅ (20.11.2026) Leiste unten als Komponente `web/src/components/GameBar.tsx` (Music 1v1 `/MusicBattle/?mode=1v1`, Musik-Quiz `/MusicBattle/?mode=quiz`, TotalGuesser aktiv, Tools `/#tools`), Platz für Safe Area (`--bar-h`); mitten im Spiel bleibt der Spielstand im `localStorage` erhalten (keine Rückfrage nötig). Dazu oben links die GameMaster-Maske als Weg zur Übersicht (`/`), wie in Music Battle.
 3. Manifest und Icons an die gemeinsame App anpassen (nach Schritt 8.2 im Repo MusicBattle).
