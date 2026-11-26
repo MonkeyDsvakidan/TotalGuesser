@@ -5,6 +5,7 @@ interface Props {
   team: Team
   category: Category
   label: string // z. B. «Runde 2 von 5»
+  playoffs?: boolean
 }
 
 function scopeHint(category: Category, team: Team): string {
@@ -21,7 +22,7 @@ function scopeHint(category: Category, team: Team): string {
   }
 }
 
-export default function RoundHeader({ team, category, label }: Props) {
+export default function RoundHeader({ team, category, label, playoffs }: Props) {
   return (
     <div className="round-header board">
       {team.logo_url && (
@@ -38,7 +39,9 @@ export default function RoundHeader({ team, category, label }: Props) {
         <div className="board-label">{label}</div>
         <div className="team-name">{team.name}</div>
         <div className="category">{category.label}</div>
-        <div className="board-hint">{scopeHint(category, team)}</div>
+        <div className="board-hint">{scopeHint(category, team)}
+          {playoffs && ' · inkl. Playoffs'}
+        </div>
       </div>
     </div>
   )

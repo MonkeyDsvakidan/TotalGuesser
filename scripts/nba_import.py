@@ -1,11 +1,14 @@
 """NBA-Import: schreibt Teams, Kategorien und Spielerwerte als statische JSON-Dateien.
 
-Quelle ist nba_api (offizielle NBA-Statistiken). Gezählt wird nur die Regular Season.
-Pro Spieler ist eine Anfrage nötig (PlayerCareerStats); Antworten werden in
+Quelle ist nba_api (offizielle NBA-Statistiken). Antworten werden in
 scripts/.cache/ gespeichert, damit ein abgebrochener Lauf weitermachen kann.
 
-Pro Spieler sind zwei Anfragen nötig: PlayerCareerStats (Saison-Totals) und
-PlayerProfileV2 (Career Highs, also beste Einzelspiele).
+Pro Spieler bis zu drei Anfragen: PlayerCareerStats (Saison-Totals Regular Season
+und Playoffs), PlayerProfileV2 (Career Highs, also beste Einzelspiele) und – nur bei
+Spielern mit Playoff-Einsätzen – LeagueGameFinder (Playoff-Spiele für die Playoff-Highs).
+
+Playoffs: "values" enthält nur die Regular Season. "playoffs" enthält die Werte
+Regular Season + Playoffs zusammen, aber nur dort, wo sie sich unterscheiden.
 
 Ausgabe (Standard: web/public/data/nba/):
     meta.json             Datenstand, Kategorien, Teams
@@ -33,7 +36,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from nba_api.stats.endpoints import playercareerstats, playerprofilev2
+from nba_api.stats.endpoints import leaguegamefinder, playercareerstats, playerprofilev2
 from nba_api.stats.static import players as static_players
 from nba_api.stats.static import teams as static_teams
 
@@ -134,16 +137,21 @@ def fetch_cached(kind: str, player_id: int, load, refresh: bool, retries: int) -
     return rows
 
 
-def fetch_career(player_id: int, refresh: bool = False) -> list[dict]:
-    """Saison-Totals der Regular Season."""
-    return fetch_cached(
-        "nba_career",
-        player_id,
-        lambda: playercareerstats.PlayerCareerStats(player_id=player_id, timeout=30)
-        .get_normalized_dict()["SeasonTotalsRegularSeason"],
-        refresh,
-        retries=4,
-    )
+def fetch_career(player_id: int, refresh: bool = False) -> tuple[list[dict], list[dict]]:
+    """Saison-Totals (Regular Season, Playoffs) – beide aus derselben Anfrage."""
+    # Eigener Cache für die Playoffs, damit ältere Caches (nur Regular Season) gültig bleiben
+    cache_po = CACHE_DIR / "nba_career_po" / f"{player_id}.json"
+    response: dict = {}
+
+    def load(result_set: str):
+        if not response:
+            response.update(playercareerstats.PlayerCareerStats(player_id=player_id, timeout=30).get_normalized_dict())
+        return response[result_set]
+
+    po_refresh = refresh or not cache_po.exists()
+    regular = fetch_cached("nba_career", player_id, lambda: load("SeasonTotalsRegularSeason"), refresh or po_refresh, retries=4)
+    playoffs = fetch_cached("nba_career_po", player_id, lambda: load("SeasonTotalsPostSeason"), po_refresh, retries=4)
+    return regular, playoffs
 
 
 def fetch_career_highs(player_id: int, refresh: bool = False) -> list[dict]:
@@ -154,6 +162,22 @@ def fetch_career_highs(player_id: int, refresh: bool = False) -> list[dict]:
         lambda: playerprofilev2.PlayerProfileV2(player_id=player_id, timeout=30)
         .get_normalized_dict()
         .get("CareerHighs", []),
+        refresh,
+        retries=2,
+    )
+
+
+def fetch_playoff_games(player_id: int, refresh: bool = False) -> list[dict]:
+    """Alle Playoff-Spiele eines Spielers (für die Career Highs der Playoffs)."""
+    return fetch_cached(
+        "nba_playoff_games",
+        player_id,
+        lambda: leaguegamefinder.LeagueGameFinder(
+            player_or_team_abbreviation="P",
+            player_id_nullable=player_id,
+            season_type_nullable="Playoffs",
+            timeout=30,
+        ).get_normalized_dict()["LeagueGameFinderResults"],
         refresh,
         retries=2,
     )
@@ -170,6 +194,34 @@ def compute_career_highs(rows: list[dict]) -> dict:
         if category and r.get("STAT_VALUE") is not None:
             highs[category] = max(highs.get(category, 0), num(r["STAT_VALUE"]))
     return {k: clean(v) for k, v in highs.items()}
+
+
+def compute_playoff_highs(games: list[dict]) -> dict:
+    """Bestes Playoff-Spiel je Statistik, gleiche Kategorien wie compute_career_highs."""
+    highs: dict[str, float] = {}
+    for g in games:
+        for stat, category in CAREER_HIGH_STATS.items():
+            if g.get(stat) is not None:
+                highs[category] = max(highs.get(category, 0), num(g[stat]))
+    return {k: clean(v) for k, v in highs.items()}
+
+
+def merge_seasons(regular: list[dict], playoffs: list[dict]) -> list[dict]:
+    """Regular Season + Playoffs je Saison und Team zusammenzählen (sonst wäre ein Playoff-Lauf eine eigene «Saison»)."""
+    merged: dict[tuple, dict] = {}
+    for r in regular + playoffs:
+        key = (r["SEASON_ID"], r["TEAM_ID"], r["TEAM_ABBREVIATION"] == "TOT")
+        if key not in merged:
+            merged[key] = dict(r)
+        else:
+            for column in ("PTS", "REB", "AST", "GP"):
+                merged[key][column] = num(merged[key][column]) + num(r[column])
+    return sorted(merged.values(), key=lambda r: r["SEASON_ID"])
+
+
+def playoff_diff(regular: dict, combined: dict) -> dict:
+    """Nur Werte, die sich mit Playoffs ändern – hält die Dateien klein."""
+    return {k: v for k, v in combined.items() if regular.get(k) != v}
 
 
 def compute_player(seasons: list[dict]) -> tuple[dict, dict[int, dict]]:
@@ -268,8 +320,9 @@ def main() -> None:
 
     for i, pl in enumerate(selected, start=1):
         print(f"[{i}/{len(selected)}] {pl['full_name']}")
+        refresh = args.refresh_active and pl["is_active"]
         try:
-            seasons = fetch_career(pl["id"], refresh=args.refresh_active and pl["is_active"])
+            seasons, playoff_seasons = fetch_career(pl["id"], refresh=refresh)
         except RuntimeError:
             if i == 1:
                 sys.exit(
@@ -283,10 +336,27 @@ def main() -> None:
 
         if load_highs:
             try:
-                career.update(compute_career_highs(fetch_career_highs(pl["id"], refresh=args.refresh_active and pl["is_active"])))
+                career.update(compute_career_highs(fetch_career_highs(pl["id"], refresh=refresh)))
                 highs_failures = 0
             except RuntimeError as exc:
                 # Career Highs sind ein Zusatz: ein einzelner Fehler bricht den Lauf nicht ab
+                print(f"  {exc}")
+                highs_failures += 1
+                if highs_failures >= 5:
+                    print("  Career Highs mehrmals hintereinander fehlgeschlagen – für diesen Lauf abgeschaltet.")
+                    load_highs = False
+
+        combined_career, combined_teams = compute_player(merge_seasons(seasons, playoff_seasons))
+        for category in CAREER_HIGH_STATS.values():
+            if category in career:
+                combined_career[category] = career[category]
+        if load_highs and playoff_seasons:
+            try:
+                for category, value in compute_playoff_highs(fetch_playoff_games(pl["id"], refresh=refresh)).items():
+                    combined_career[category] = max(combined_career.get(category, 0), value)
+                highs_failures = 0
+            except RuntimeError as exc:
+                # Dann gelten für diesen Spieler die Highs der Regular Season auch «mit Playoffs»
                 print(f"  {exc}")
                 highs_failures += 1
                 if highs_failures >= 5:
@@ -299,18 +369,21 @@ def main() -> None:
                 nba_team_id,
                 {"id": team_key(nba_team_id), "name": entry["abbr"], "short_name": entry["abbr"], "logo_url": None, "active": False},
             )
-            rosters[nba_team_id].append(
-                {
-                    "id": player_key(pl["id"]),
-                    "name": pl["full_name"],
-                    "search": search_name(pl["full_name"]),
-                    "aliases": aliases.get(player_key(pl["id"]), []),
-                    "active": pl["is_active"],
-                    "first": entry["first"],
-                    "last": entry["last"],
-                    "values": {**career, **entry["values"]},
-                }
-            )
+            values = {**career, **entry["values"]}
+            player = {
+                "id": player_key(pl["id"]),
+                "name": pl["full_name"],
+                "search": search_name(pl["full_name"]),
+                "aliases": aliases.get(player_key(pl["id"]), []),
+                "active": pl["is_active"],
+                "first": entry["first"],
+                "last": entry["last"],
+                "values": values,
+            }
+            playoffs = playoff_diff(values, {**combined_career, **combined_teams[nba_team_id]["values"]})
+            if playoffs:
+                player["playoffs"] = playoffs
+            rosters[nba_team_id].append(player)
 
     # Alte Ausgabe ersetzen, damit keine verwaisten Teamdateien liegen bleiben
     shutil.rmtree(args.out / "teams", ignore_errors=True)
@@ -330,6 +403,8 @@ def main() -> None:
             "sport": SPORT,
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "min_career_points": args.min_points,
+            # Zeigt dem Spiel, dass der Schalter «Mit Playoffs» Daten hat
+            "playoffs": any("playoffs" in p for roster in rosters.values() for p in roster),
             # Kategorien ohne einen einzigen Wert (z. B. Career Highs mit --skip-highs) weglassen
             "categories": [
                 c for c in CATEGORIES if any(c["key"] in p["values"] for roster in rosters.values() for p in roster)

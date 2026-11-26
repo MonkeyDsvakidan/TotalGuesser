@@ -66,9 +66,11 @@ export default function App() {
     saveSport(id)
   }
 
-  const startGame = async (settings: Settings) => {
+  const startGame = async (chosen: Settings) => {
     if (!meta) return
-    saveLastSettings(settings)
+    saveLastSettings(chosen)
+    // Ohne Playoff-Daten (Fussball, älterer NBA-Import) gilt nur die Regular Season
+    const settings = { ...chosen, playoffs: Boolean(chosen.playoffs && meta.playoffs) }
     setStarting(true)
     setError(null)
     try {
@@ -88,7 +90,7 @@ export default function App() {
         sport: sport.id,
         settings,
         rounds,
-        target: computeTarget(rounds, loaded),
+        target: computeTarget(rounds, loaded, settings.playoffs),
         // Wer beginnt, ist zufällig; danach rotiert die Reihenfolge wie gewohnt
         startPlayer: Math.floor(Math.random() * settings.players.length),
         picks: rounds.map(() => []),
@@ -108,7 +110,7 @@ export default function App() {
     if (!turn) return
     const categoryKey = game.rounds[turn.round].categoryKey
     const entry = player
-      ? { playerIndex: turn.playerIndex, rosterId: player.id, name: player.name, value: playerValue(player, categoryKey) }
+      ? { playerIndex: turn.playerIndex, rosterId: player.id, name: player.name, value: playerValue(player, categoryKey, game.settings.playoffs) }
       : { playerIndex: turn.playerIndex, rosterId: null, name: 'gepasst', value: 0 }
     setGame({ ...game, picks: game.picks.map((p, r) => (r === turn.round ? [...p, entry] : p)) })
   }
@@ -222,6 +224,7 @@ export default function App() {
             availableSports={loadedSports}
             onSportChange={changeSport}
             categories={meta.categories}
+            playoffsAvailable={Boolean(meta.playoffs)}
             initial={loadLastSettings()}
             stats={stats}
             starting={starting}
@@ -238,7 +241,7 @@ export default function App() {
           teams={teams}
           categories={categories}
           onTargetChange={(target) => setGame({ ...game, target })}
-          onReroll={() => setGame({ ...game, target: computeTarget(game.rounds, rosters) })}
+          onReroll={() => setGame({ ...game, target: computeTarget(game.rounds, rosters, game.settings.playoffs) })}
           onStart={() => setGame({ ...game, phase: 'play' })}
         />
       )}

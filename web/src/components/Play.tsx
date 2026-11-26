@@ -29,6 +29,7 @@ export default function Play({ game, teams, categories, rosters, rosterNote, onP
             label={`Runde ${turn.round + 1} von ${game.rounds.length}`}
             team={teams.get(game.rounds[turn.round].teamId)!}
             category={categories.get(game.rounds[turn.round].categoryKey)!}
+            playoffs={game.settings.playoffs}
           />
           <h2 className="whose-turn">{game.settings.players[turn.playerIndex]} ist dran</h2>
           <PlayerSearch

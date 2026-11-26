@@ -25,6 +25,7 @@ export interface SportMeta {
   sport: string
   updated_at: string
   min_career_points?: number
+  playoffs?: boolean // true = Spieler haben Playoff-Werte; fehlt bei älteren Daten
   roster_note?: string | null // wer ins Spiel kommt, z. B. "nur Spieler ab 15 erfassten Einsätzen"
   categories: Category[]
   teams: Team[]
@@ -39,5 +40,6 @@ export interface RosterPlayer {
   active: boolean
   first: number
   last: number
-  values: Record<string, number>
+  values: Record<string, number> // nur Regular Season
+  playoffs?: Record<string, number> // Regular Season + Playoffs, nur Werte, die sich dadurch ändern
 }

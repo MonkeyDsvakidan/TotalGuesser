@@ -16,7 +16,7 @@ import {
   turnOrder,
 } from './logic'
 import type { Game, Pick } from './types'
-import { teamLabel } from '../lib/data'
+import { playerValue, teamLabel } from '../lib/data'
 
 function player(id: string, name: string, values: Record<string, number> = {}, aliases: string[] = []): RosterPlayer {
   return { id, name, search: normalize(name), aliases, active: false, first: 2000, last: 2005, values }
@@ -101,7 +101,7 @@ describe('Zielzahl', () => {
       { teamId: 't1', categoryKey: 'pts' },
     ]
     // t0: [0, 10, 20, 30, 40] -> 30; t1: [20, 40] -> 35; Faktor 0.8 + 0.4 * 0.5 = 1.0
-    expect(computeTarget(rounds, rosters, () => 0.4)).toBe(65)
+    expect(computeTarget(rounds, rosters, false, () => 0.4)).toBe(65)
   })
 })
 
@@ -201,6 +201,41 @@ describe('perfectLastPick', () => {
     const g = game([[pick(0, 20), pick(1, 1)], [pick(1, 1), pick(0, 1)]], { target: 50 })
     expect(perfectLastPick(g, 0, roster)?.value).toBe(31)
     expect(perfectLastPick({ ...g, settings: { ...g.settings, rule: 'bust' } }, 0, roster)?.value).toBe(25)
+  })
+})
+
+describe('Playoffs', () => {
+  const withPo = (id: string, regular: number, po?: number): RosterPlayer => ({
+    ...player(id, id, { pts: regular, team_games: 60 }),
+    ...(po === undefined ? {} : { playoffs: { pts: po } }),
+  })
+
+  it('nimmt mit Playoffs den Playoff-Wert, sonst die Regular Season', () => {
+    const p = withPo('a', 100, 130)
+    expect(playerValue(p, 'pts')).toBe(100)
+    expect(playerValue(p, 'pts', true)).toBe(130)
+    // ohne Playoff-Einsätze (oder ältere Daten ohne Feld) bleibt es gleich
+    expect(playerValue(withPo('b', 100), 'pts', true)).toBe(100)
+    expect(playerValue(p, 'team_games', true)).toBe(60)
+    expect(playerValue(p, 'fehlt', true)).toBe(0)
+  })
+
+  it('rechnet Zielzahl und perfekten Pick mit Playoff-Werten', () => {
+    const rosters = { t0: [withPo('a', 10, 20), withPo('b', 10, 20)] }
+    const rounds = [{ teamId: 't0', categoryKey: 'pts' }]
+    expect(computeTarget(rounds, rosters, false, () => 0.4)).toBe(10)
+    expect(computeTarget(rounds, rosters, true, () => 0.4)).toBe(20)
+
+    const g = game([[pick(0, 30), pick(1, 1)]], { target: 50 })
+    const roster = [withPo('x', 10, 20)]
+    expect(perfectLastPick(g, 0, roster)?.value).toBe(10)
+    expect(perfectLastPick({ ...g, settings: { ...g.settings, playoffs: true } }, 0, roster)?.value).toBe(20)
+  })
+
+  it('liest alte Spielstände ohne Playoff-Feld als nur Regular Season', () => {
+    const old = JSON.parse(JSON.stringify(game([[pick(0, 30), pick(1, 1)]], { target: 50 }))) as Game
+    expect(old.settings.playoffs).toBeUndefined()
+    expect(perfectLastPick(old, 0, [withPo('x', 10, 20)])?.value).toBe(10)
   })
 })
 

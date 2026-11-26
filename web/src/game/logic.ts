@@ -63,11 +63,11 @@ const MIN_REGULARS = 5
 // Bekannte Spieler liegen eher im oberen Bereich, daher das obere Viertel statt des Medians
 const TARGET_PERCENTILE = 0.75
 
-export function roundBase(roster: RosterPlayer[], categoryKey: string): number {
+export function roundBase(roster: RosterPlayer[], categoryKey: string, playoffs = false): number {
   const regulars = roster.filter((p) => playerValue(p, 'team_games') >= REGULAR_MIN_TEAM_GAMES)
   const pool = regulars.length >= MIN_REGULARS ? regulars : roster
   return percentile(
-    pool.map((p) => playerValue(p, categoryKey)),
+    pool.map((p) => playerValue(p, categoryKey, playoffs)),
     TARGET_PERCENTILE,
   )
 }
@@ -76,9 +76,10 @@ export function roundBase(roster: RosterPlayer[], categoryKey: string): number {
 export function computeTarget(
   rounds: RoundSpec[],
   rosters: Record<string, RosterPlayer[]>,
+  playoffs = false,
   random: () => number = Math.random,
 ): number {
-  const base = rounds.reduce((sum, round) => sum + roundBase(rosters[round.teamId] ?? [], round.categoryKey), 0)
+  const base = rounds.reduce((sum, round) => sum + roundBase(rosters[round.teamId] ?? [], round.categoryKey, playoffs), 0)
   const factor = 0.8 + random() * 0.5
   return Math.max(1, roundNicely(base * factor))
 }
@@ -182,7 +183,7 @@ export function perfectLastPick(
   let best: { player: RosterPlayer; value: number; total: number } | null = null
   for (const player of roster) {
     if (taken.has(player.id)) continue
-    const value = playerValue(player, categoryKey)
+    const value = playerValue(player, categoryKey, game.settings.playoffs)
     const total = before + value
     if (game.settings.rule === 'bust' && total > game.target) continue
     if (!best || Math.abs(game.target - total) < Math.abs(game.target - best.total)) {

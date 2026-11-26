@@ -164,6 +164,7 @@ export default function Reveal({ game, teams, categories, rosters, onRevealNext,
           {results.every((s) => !s.winner) && <p className="muted">Alle über dem Ziel – niemand gewinnt.</p>}
           <p className="muted small">
             Kategorie{game.settings.categoryMode === 'mixed' ? 'n wechselnd' : `: ${categories.get(game.rounds[0].categoryKey)?.label}`}
+            {game.settings.playoffs && ' · mit Playoffs'}
           </p>
           <div className="actions">
             <button type="button" className="primary big" onClick={onRematch}>
