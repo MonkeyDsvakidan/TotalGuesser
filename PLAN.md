@@ -183,6 +183,8 @@ Aufgaben daraus:
 
 **Entscheid 26.11.2026:** Namen übernehmen + Abend-Rangliste über alle Spiele (kein echter gemeinsamer Raum). TotalGuesser bleibt ein Gerät, «Modus 2» ist dafür nicht nötig.
 
+✅ **Umgesetzt 26.11.2026** (`web/src/game/abend.ts`): `main.tsx` lädt vor dem Start `/abend.js` der GameMaster-Startseite. Ist das Spiel fertig aufgedeckt, trägt TotalGuesser die Plätze in die Abend-Rangliste ein (`tg:<Spiel-ID>`; bei «Drüber = raus» rückt, wer drüber ist, einen Platz nach hinten) und zeigt «Heute Abend: … · Rangliste». Hat die Gruppe zuletzt ein anderes Spiel beendet (z. B. Music 1v1), stehen deren Namen schon im Setup; alle Namen des Abends als Auswahlliste. Punkte: 1. = 3, 2. = 2, 3. = 1, zu zweit 3/1; Abend endet nach 6 h ohne Spiel.
+
 ---
 
 ## 8. GameMaster: Teil einer gemeinsamen Spiel-App (Entscheid 20.11.2026)

@@ -5,6 +5,7 @@ import GameBar from './components/GameBar'
 import Setup from './components/Setup'
 import TargetSetup from './components/TargetSetup'
 import { computeTarget, currentTurn, formatValue, pickRandom, pickTeams, revealOrder } from './game/logic'
+import { recordAbend } from './game/abend'
 import { loadGame, loadLastSettings, loadSport, loadStats, recordResult, saveGame, saveLastSettings, saveSport } from './game/storage'
 import type { Game, Settings } from './game/types'
 import { loadMeta, loadRoster, playerValue, rosterNote } from './lib/data'
@@ -128,6 +129,7 @@ export default function App() {
     const updated = { ...game, revealed: Math.min(total, game.revealed + count) }
     if (updated.revealed === total) {
       recordResult(updated)
+      recordAbend(updated)
       setStats(loadStats())
     }
     setGame(updated)

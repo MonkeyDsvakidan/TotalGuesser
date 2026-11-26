@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { abendPlaces } from './abend'
 import type { RosterPlayer } from '../lib/types'
 import {
   computeTarget,
@@ -253,5 +254,22 @@ describe('Anzeige', () => {
     expect(teamLabel(team)).toBe('Boston Celtics')
     expect(teamLabel({ ...team, name: '1. FC Heidenheim', short_name: 'Heidenheim' })).toBe('Heidenheim')
     expect(teamLabel({ ...team, short_name: null })).toBe('Boston Celtics')
+  })
+})
+
+describe('abendPlaces (Abend-Rangliste)', () => {
+  const picks = [
+    [pick(0, 20), pick(1, 30)],
+    [pick(1, 25), pick(0, 28)],
+  ]
+  it('Plätze aus dem Endstand', () => {
+    expect(abendPlaces(game(picks))).toEqual([
+      { name: 'Anna', place: 1 },
+      { name: 'Ben', place: 2 },
+    ])
+  })
+  it('Drüber = raus: wer drüber ist, rückt einen Platz nach hinten', () => {
+    const g = game(picks, { target: 40 })
+    expect(abendPlaces({ ...g, settings: { ...g.settings, rule: 'bust' } }).map((p) => p.place)).toEqual([2, 3])
   })
 })

@@ -4,6 +4,7 @@ import type { Settings } from '../game/types'
 import type { PlayerRecord } from '../game/storage'
 import { SPORTS, type Sport } from '../lib/sports'
 import Icon from './Icon'
+import { abendGroup, abendNames } from '../game/abend'
 
 const MIN_PLAYERS = 2
 const MAX_PLAYERS = 6
@@ -42,7 +43,12 @@ interface Props {
 }
 
 export default function Setup({ sport, availableSports, onSportChange, categories, playoffsAvailable, initial, stats, starting, onStart }: Props) {
-  const [settings, setSettings] = useState<Settings>({ ...DEFAULT_SETTINGS, ...initial })
+  // Abend-Rangliste: Hat die Gruppe eben ein anderes Spiel beendet, stehen ihre Namen schon drin
+  const [settings, setSettings] = useState<Settings>(() => {
+    const group = abendGroup().slice(0, MAX_PLAYERS).map((n) => n.slice(0, 20))
+    return { ...DEFAULT_SETTINGS, ...initial, ...(group.length >= MIN_PLAYERS ? { players: group } : {}) }
+  })
+  const [knownNames] = useState(abendNames)
   const update = (patch: Partial<Settings>) => setSettings((s) => ({ ...s, ...patch }))
 
   const groupCategories = categories.filter((c) => c.group === settings.categoryGroup)
@@ -112,6 +118,7 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
                   placeholder={`Spieler ${i + 1}`}
                   aria-label={`Spieler ${i + 1}`}
                   maxLength={20}
+                  list="abendNames"
                 />
                 {settings.players.length > MIN_PLAYERS && (
                   <button
@@ -126,6 +133,11 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
               </div>
             ))}
           </div>
+          <datalist id="abendNames">
+            {knownNames.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
           {settings.players.length < MAX_PLAYERS && (
             <button type="button" className="secondary add" onClick={() => update({ players: [...settings.players, ''] })}>
               <Icon name="plus" />

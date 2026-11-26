@@ -116,6 +116,12 @@ p {
   font-size: var(--text-s);
 }
 
+/* Abend-Rangliste (GameMaster): Link zur Startseite im Endstand */
+.abendline a {
+  color: var(--fg);
+  text-underline-offset: 3px;
+}
+
 .num,
 .digits {
   font-variant-numeric: tabular-nums;
