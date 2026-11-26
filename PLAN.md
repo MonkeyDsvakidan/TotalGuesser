@@ -175,7 +175,9 @@ Ein Python-Skript im Ordner `/scripts` holt die Daten und lädt sie per Supabase
 - Franchise-Umzüge: zusammenfassen oder getrennt?
 - Soll man im Fussball auch Nationalteams spielen können?
 
-**Später (Wunsch des Nutzers, 22.11.2026): gemeinsamer Raum über die Spiele.** Eine Gruppe behält ihren Raum (Leute, Namen, evtl. Punktestand über den Abend), wenn sie zwischen TotalGuesser und Music Battle (1v1, Quiz) wechselt – ohne neu beizutreten. Heute hat TotalGuesser keine Datenbank (ein Gerät, `localStorage`), Music Battle hat Räume in Supabase (`mb_rooms`/`mb_members`). Vor dem Start klären: nur Namen/Mitglieder übernehmen oder echter gemeinsamer GameMaster-Raum, und ob dafür «Modus 2» (jeder am eigenen Handy) nötig ist. Planung im Repo MusicBattle, `ROADMAP.md` → «Später».
+**Später (Wunsch des Nutzers, 22.11.2026): gemeinsamer Raum über die Spiele.** Eine Gruppe behält ihren Raum (Leute, Namen, evtl. Punktestand über den Abend), wenn sie zwischen TotalGuesser und Music Battle (1v1, Quiz) wechselt – ohne neu beizutreten. Heute hat TotalGuesser keine Datenbank (ein Gerät, `localStorage`), Music Battle hat Räume in Supabase (`mb_rooms`/`mb_members`). Vor dem Start klären: nur Namen/Mitglieder übernehmen oder echter gemeinsamer GameMaster-Raum, und ob dafür «Modus 2» (jeder am eigenen Handy) nötig ist. Planung im Repo MusicBattle, `ROADMAP.md` → «Grössere Ausbauten».
+
+**Entscheid 26.11.2026:** Namen übernehmen + Abend-Rangliste über alle Spiele (kein echter gemeinsamer Raum). TotalGuesser bleibt ein Gerät, «Modus 2» ist dafür nicht nötig.
 
 ---
 
