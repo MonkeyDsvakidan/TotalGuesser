@@ -168,16 +168,25 @@ export default function App() {
           <a className="gm-home" href="/" aria-label="Zur Übersicht aller Spiele">
             <img src="/icon-180.png" alt="" width="40" height="40" />
           </a>
-          <h1 className="logo">
-            Total<span>Guesser</span>
-          </h1>
-        </div>
-        {game && game.phase !== 'target' && (
-          <div className="target board" aria-label="Zielzahl">
-            <span className="board-label">Ziel</span>
-            <strong className="digits">{formatValue(game.target)}</strong>
+          <div className="brandcopy">
+            <span className="eyebrow">GameMaster</span>
+            <h1 className="logo">
+              Total<span>Guesser</span>
+            </h1>
           </div>
-        )}
+        </div>
+        <div className="topright">
+          {game && game.phase !== 'target' && (
+            <div className="target board" aria-label="Zielzahl">
+              <span className="board-label">Ziel</span>
+              <strong className="digits">{formatValue(game.target)}</strong>
+            </div>
+          )}
+          {/* Wie in Music Battle; der Spielstand bleibt gespeichert, deshalb keine Rückfrage */}
+          <a className={game ? 'allgames in-game' : 'allgames'} href="/">
+            ‹{'\uFE0E'} Alle Spiele
+          </a>
+        </div>
       </header>
 
       {error && !game && (
