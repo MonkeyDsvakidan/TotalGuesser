@@ -43,6 +43,18 @@ const ITEMS = [
     ),
   },
   {
+    k: 'poker',
+    href: '/PokerFriends/',
+    label: 'Poker',
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="9.5" />
+        <circle cx="12" cy="12" r="5" />
+        <path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4" />
+      </>
+    ),
+  },
+  {
     k: 'tools',
     href: '/#tools',
     label: 'Tools',
