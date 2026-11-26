@@ -60,7 +60,8 @@
   --bar-bg: #151419;
   --bar-line: rgb(255 255 255 / 0.08);
   --bar-idle: #8f8a99;
-  --bar-h: calc(58px + env(safe-area-inset-bottom));
+  --bar-h: calc(58px + env(safe-area-inset-bottom)); /* Platz unten (Handy) */
+  --bar-top: 0px; /* Platz oben – ab 820 px sitzt die Leiste oben (wie Music Battle U.3) */
 
   color-scheme: dark;
   font-family: var(--font-ui);
@@ -174,7 +175,7 @@ p {
 /* Kopfzeile mit fixierter Zielzahl */
 .top {
   position: sticky;
-  top: 0;
+  top: var(--bar-top);
   z-index: 10;
   display: flex;
   align-items: center;
@@ -1013,4 +1014,52 @@ footer {
   outline: 2px solid var(--accent);
   outline-offset: -4px;
   border-radius: var(--radius-s);
+}
+
+/* Am Computer (ab 820 px): Leiste oben als kompakte Reihe – gleich wie Music Battle (U.3) und Poker */
+@media (min-width: 820px) {
+  :root {
+    --bar-h: 0px;
+    --bar-top: 52px;
+  }
+
+  body {
+    padding-top: var(--bar-top);
+  }
+
+  .gmbar {
+    top: 0;
+    bottom: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-1);
+    height: var(--bar-top);
+    padding: 0 var(--space-4);
+    border-top: 0;
+    border-bottom: 1px solid var(--bar-line);
+  }
+
+  .gmbar a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 40px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+  }
+
+  .gmbar svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .gmbar a[aria-current] {
+    background: var(--accent-soft);
+  }
+
+  .gmbar a[aria-current]::before {
+    display: none;
+  }
 }
