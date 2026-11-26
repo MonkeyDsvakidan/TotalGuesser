@@ -168,12 +168,16 @@ Ein Python-Skript im Ordner `/scripts` holt die Daten und lädt sie per Supabase
 
 ---
 
-## 7. Offene Entscheidungen
+## 7. Entscheidungen (vom Nutzer am 26.11.2026 beantwortet)
 
-- Zählen Playoff-Werte mit oder nur Regular Season? (Vorschlag: nur Regular Season, wie die üblichen Career-High-Angaben.)
-- Darf ein Team mehrmals in einem Spiel vorkommen?
-- Franchise-Umzüge: zusammenfassen oder getrennt?
-- Soll man im Fussball auch Nationalteams spielen können?
+- **Playoffs:** **wählbar.** Schalter unter «Mehr Optionen», Standard nur Regular Season. Heute importiert `nba_import.py` nur die Regular Season → Aufgabe unten.
+- **Team mehrmals im Spiel:** nein – ist schon so umgesetzt (Teams wiederholen sich erst, wenn alle dran waren).
+- **Franchise-Umzüge:** zusammenfassen – ist schon so umgesetzt (`nba_api` vergibt pro Franchise eine feste `TEAM_ID`, siehe `nba_import.py`).
+- **Nationalteams im Fussball:** ja, **später** – braucht zuerst eine verlässliche Datenquelle für Länderspiele (der Transfermarkt-Datensatz reicht dafür nicht sicher).
+
+Aufgaben daraus:
+- ⬜ **Playoffs wählbar:** Import erweitert um die Playoff-Totals (`SeasonTotalsPostSeason`, Career Highs der Playoffs), Datenformat so erweitern, dass alte Daten weiter gelesen werden; Schalter «Mit Playoffs» unter «Mehr Optionen» (Standard aus), in der Zusammenfassung anzeigen, Spielstand im `localStorage` weiter lesbar.
+- ⬜ **Nationalteams (Fussball, später):** zuerst Datenquelle suchen (Länderspiele, Tore, Einsätze je Spieler), dann als eigene Auswahl neben «Top-5-Ligen».
 
 **Später (Wunsch des Nutzers, 22.11.2026): gemeinsamer Raum über die Spiele.** Eine Gruppe behält ihren Raum (Leute, Namen, evtl. Punktestand über den Abend), wenn sie zwischen TotalGuesser und Music Battle (1v1, Quiz) wechselt – ohne neu beizutreten. Heute hat TotalGuesser keine Datenbank (ein Gerät, `localStorage`), Music Battle hat Räume in Supabase (`mb_rooms`/`mb_members`). Vor dem Start klären: nur Namen/Mitglieder übernehmen oder echter gemeinsamer GameMaster-Raum, und ob dafür «Modus 2» (jeder am eigenen Handy) nötig ist. Planung im Repo MusicBattle, `ROADMAP.md` → «Grössere Ausbauten».
 
