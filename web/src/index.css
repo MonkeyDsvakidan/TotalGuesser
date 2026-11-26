@@ -1013,6 +1013,57 @@ footer {
   outline-offset: 2px;
 }
 
+/* Kopfzeile wie in Music Battle: «GAMEMASTER» klein über dem Spielnamen, rechts «‹ Alle Spiele» */
+.brandcopy {
+  display: grid;
+  min-width: 0;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font: 700 11px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+
+.topright {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.allgames {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+  font-size: var(--text-s);
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.allgames:hover {
+  color: var(--fg);
+}
+
+.allgames:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-s);
+}
+
+/* Handy im Spiel: die Zielzahl braucht den Platz, die Maske links führt ebenfalls zur Übersicht */
+@media (max-width: 520px) {
+  .allgames.in-game {
+    display: none;
+  }
+
+  .top:has(.target) .logo {
+    font-size: var(--text-l);
+  }
+}
+
 .gmbar {
   position: fixed;
   left: 0;
