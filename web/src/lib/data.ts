@@ -28,9 +28,10 @@ export function loadRoster(sport: string, teamId: string): Promise<RosterPlayer[
   return getJson(`${sport}/teams/${teamId}.json`)
 }
 
-// Fehlender Wert = 0 (z. B. ein Spieler ohne Spiel in dieser Saison), siehe PLAN.md
-export function playerValue(player: RosterPlayer, categoryKey: string): number {
-  return player.values[categoryKey] ?? 0
+// Fehlender Wert = 0 (z. B. ein Spieler ohne Spiel in dieser Saison), siehe PLAN.md.
+// Mit Playoffs: eigener Wert, falls vorhanden, sonst gleich wie Regular Season (keine Playoff-Spiele)
+export function playerValue(player: RosterPlayer, categoryKey: string, withPlayoffs = false): number {
+  return (withPlayoffs ? player.playoffs?.[categoryKey] : undefined) ?? player.values[categoryKey] ?? 0
 }
 
 // Kurzer Name für Tabelle und Hinweise; NBA-Kürzel wie «BOS» sagen zu wenig, dann der volle Name

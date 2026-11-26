@@ -4,6 +4,7 @@ export interface Sport {
   id: string // Ordner unter public/data/
   label: string
   importScript: string
+  hasPlayoffs?: boolean // Schalter «Mit Playoffs» anbieten
   groupDescriptions: Record<CategoryGroup, string>
 }
 
@@ -12,6 +13,7 @@ export const SPORTS: Sport[] = [
     id: 'nba',
     label: 'Basketball (NBA)',
     importScript: 'nba_import.py',
+    hasPlayoffs: true,
     groupDescriptions: {
       single_game: 'Career Highs – das beste Spiel eines Spielers',
       multi_game: 'Totals, Spiele, Saisons und Saisonschnitte',

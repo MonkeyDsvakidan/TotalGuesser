@@ -10,6 +10,7 @@ export interface Settings {
   categoryMode: 'fixed' | 'mixed'
   categoryKey: string | null // nur bei 'fixed'; null = zufällig
   rule: Rule
+  playoffs?: boolean // Werte inkl. Playoffs; fehlt bei älteren Spielständen (= nur Regular Season)
 }
 
 export interface RoundSpec {

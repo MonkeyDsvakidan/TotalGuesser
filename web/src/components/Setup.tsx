@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS: Settings = {
   categoryMode: 'fixed',
   categoryKey: null,
   rule: 'closest',
+  playoffs: false,
 }
 
 const GROUPS: { id: CategoryGroup; title: string }[] = [
@@ -33,13 +34,14 @@ interface Props {
   availableSports: Set<string> // Sportarten, für die Daten vorhanden sind
   onSportChange: (sport: string) => void
   categories: Category[]
+  playoffsAvailable: boolean // Daten enthalten Playoff-Werte
   initial: Partial<Settings> | null
   stats: Record<string, PlayerRecord>
   starting: boolean
   onStart: (settings: Settings) => void
 }
 
-export default function Setup({ sport, availableSports, onSportChange, categories, initial, stats, starting, onStart }: Props) {
+export default function Setup({ sport, availableSports, onSportChange, categories, playoffsAvailable, initial, stats, starting, onStart }: Props) {
   const [settings, setSettings] = useState<Settings>({ ...DEFAULT_SETTINGS, ...initial })
   const update = (patch: Partial<Settings>) => setSettings((s) => ({ ...s, ...patch }))
 
@@ -60,7 +62,8 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
     settings.categoryMode === 'mixed'
       ? 'Kategorie jede Runde neu'
       : (groupCategories.find((c) => c.key === selectedKey)?.label ?? 'Kategorie zufällig')
-  const summary = `${settings.rounds} Runden · ${categoryText} · ${settings.rule === 'bust' ? 'Drüber = verloren' : 'Nur Nähe zählt'}`
+  const withPlayoffs = Boolean(sport.hasPlayoffs && playoffsAvailable && settings.playoffs)
+  const summary = `${settings.rounds} Runden · ${categoryText} · ${settings.rule === 'bust' ? 'Drüber = verloren' : 'Nur Nähe zählt'}${withPlayoffs ? ' · Mit Playoffs' : ''}`
 
   const knownPlayers = Object.entries(stats).filter(([, r]) => r.games > 0)
 
@@ -231,6 +234,27 @@ export default function Setup({ sport, availableSports, onSportChange, categorie
               </label>
             </div>
           </fieldset>
+
+          {sport.hasPlayoffs && (
+            <fieldset disabled={!playoffsAvailable}>
+              <legend>Playoffs</legend>
+              <div className="segmented">
+                <label className={`${withPlayoffs ? '' : 'on'}${playoffsAvailable ? '' : ' disabled'}`}>
+                  <input type="radio" name="playoffs" checked={!withPlayoffs} onChange={() => update({ playoffs: false })} />
+                  Nur Regular Season
+                </label>
+                <label className={`${withPlayoffs ? 'on' : ''}${playoffsAvailable ? '' : ' disabled'}`}>
+                  <input type="radio" name="playoffs" checked={withPlayoffs} onChange={() => update({ playoffs: true })} />
+                  Mit Playoffs
+                </label>
+              </div>
+              <p className="muted small">
+                {playoffsAvailable
+                  ? 'Mit Playoffs zählen Totals, Spiele, Saisonschnitte und Career Highs inklusive Playoff-Spiele.'
+                  : 'Noch keine Playoff-Daten – kommen mit dem nächsten NBA-Import.'}
+              </p>
+            </fieldset>
+          )}
         </details>
       </div>
 
