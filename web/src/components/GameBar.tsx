@@ -44,7 +44,7 @@ const ITEMS = [
   },
   {
     k: 'poker',
-    href: '/pokerfriends/',
+    href: '/PokerFriends/',
     label: 'Poker',
     icon: (
       <>
