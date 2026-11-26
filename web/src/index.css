@@ -60,7 +60,8 @@
   --bar-bg: #151419;
   --bar-line: rgb(255 255 255 / 0.08);
   --bar-idle: #8f8a99;
-  --bar-h: calc(58px + env(safe-area-inset-bottom));
+  --bar-h: calc(58px + env(safe-area-inset-bottom)); /* Platz unten (Handy) */
+  --bar-top: 0px; /* Platz oben – ab 820 px sitzt die Leiste oben (wie Music Battle U.3) */
 
   color-scheme: dark;
   font-family: var(--font-ui);
@@ -174,7 +175,7 @@ p {
 /* Kopfzeile mit fixierter Zielzahl */
 .top {
   position: sticky;
-  top: 0;
+  top: var(--bar-top);
   z-index: 10;
   display: flex;
   align-items: center;
@@ -317,9 +318,70 @@ button.link:hover {
 }
 
 /* ---------- Setup: 3 Schritte + «Mehr Optionen» ---------- */
-.setup {
+.setup,
+.setup-main {
   display: grid;
   gap: var(--space-6);
+}
+
+.setup-start {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.setup-start .hint {
+  margin: 0;
+}
+
+.setup-summary {
+  display: none;
+  margin: 0;
+}
+
+/* Handy und Tablet: «Spiel starten» bleibt über der Leiste sichtbar, sobald alle Namen eingetragen sind */
+@media (max-width: 999px) {
+  .setup-start.ready {
+    position: sticky;
+    bottom: var(--bar-h);
+    z-index: 5;
+    padding: var(--space-4) 0 var(--space-3);
+    background: linear-gradient(to top, var(--bg) 75%, transparent);
+  }
+}
+
+/* Computer: zwei Spalten – links die Schritte, rechts Zusammenfassung und Start (bleibt beim Scrollen sichtbar) */
+@media (min-width: 1000px) {
+  .app:has(> .setup) {
+    max-width: 64rem;
+  }
+
+  .setup {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    column-gap: var(--space-7);
+    align-items: start;
+  }
+
+  .setup-main,
+  .setup > .stats {
+    grid-column: 1;
+  }
+
+  .setup-start {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: calc(var(--bar-top) + 96px);
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+
+  .setup-summary {
+    display: grid;
+    gap: var(--space-1);
+  }
 }
 
 fieldset {
@@ -1064,4 +1126,52 @@ footer {
   outline: 2px solid var(--accent);
   outline-offset: -4px;
   border-radius: var(--radius-s);
+}
+
+/* Am Computer (ab 820 px): Leiste oben als kompakte Reihe – gleich wie Music Battle (U.3) und Poker */
+@media (min-width: 820px) {
+  :root {
+    --bar-h: 0px;
+    --bar-top: 52px;
+  }
+
+  body {
+    padding-top: var(--bar-top);
+  }
+
+  .gmbar {
+    top: 0;
+    bottom: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-1);
+    height: var(--bar-top);
+    padding: 0 var(--space-4);
+    border-top: 0;
+    border-bottom: 1px solid var(--bar-line);
+  }
+
+  .gmbar a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 40px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+  }
+
+  .gmbar svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .gmbar a[aria-current] {
+    background: var(--accent-soft);
+  }
+
+  .gmbar a[aria-current]::before {
+    display: none;
+  }
 }
