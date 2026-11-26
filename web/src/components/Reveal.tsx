@@ -3,6 +3,7 @@ import { formatValue, perfectLastPick, revealOrder, standings, totals } from '..
 import type { Game } from '../game/types'
 import type { Category, RosterPlayer, Team } from '../lib/types'
 import Icon from './Icon'
+import { abendSummary } from '../game/abend'
 import PicksTable from './PicksTable'
 
 interface Props {
@@ -166,6 +167,11 @@ export default function Reveal({ game, teams, categories, rosters, onRevealNext,
             Kategorie{game.settings.categoryMode === 'mixed' ? 'n wechselnd' : `: ${categories.get(game.rounds[0].categoryKey)?.label}`}
             {game.settings.playoffs && ' · mit Playoffs'}
           </p>
+          {abendSummary(game) && (
+            <p className="muted small abendline">
+              Heute Abend: {abendSummary(game)} · <a href="/">Rangliste</a>
+            </p>
+          )}
           <div className="actions">
             <button type="button" className="primary big" onClick={onRematch}>
               Revanche

@@ -5,6 +5,7 @@ Private Spieleseite von Aladin Kermo (für ihn und Freunde): Ratespiel für 2–
 - **Technik:** Frontend in `web/` (Vite + React + TypeScript). Keine Datenbank, keine Live-API: Ein Python-Skript in `scripts/` erzeugt vorher statische JSON-Dateien unter `web/public/data/<sport>/`.
 - **Veröffentlichung:** GitHub Pages über `.github/workflows/pages.yml`, Push auf `main` = live. Der Workflow führt `npm ci`, `npm test` und `npm run build` aus.
 - **Testen:** Spiellogik als reine Funktionen mit Vitest (`web/src/game/logic.test.ts`), ausführen in `web/` mit `npm test`. Oberfläche bei 375 px und 1280 px ansehen (nur dunkel, seit GameMaster).
+- **Abend-Rangliste (GameMaster):** `web/src/game/abend.ts` nutzt `/abend.js` aus dem Repo `monkeydsvakidan.github.io` (gleicher `localStorage` auf der Domain). Lokal mit `npm run dev` fehlt das Skript – dann passiert einfach nichts.
 - **Spielstand** liegt im `localStorage` – beim Ändern des Formats alte Spielstände weiter lesen können (oder sauber verwerfen).
 - Aladin programmiert nicht selbst: Erklärungen einfach halten, Deutsch (Schweiz, «ss» statt «ß»). Änderungen als Pull Request, ein PR pro Thema.
 
